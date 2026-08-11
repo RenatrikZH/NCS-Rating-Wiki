@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NCS Ratings - NoCopyrightSounds 歌曲评分社区</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a0f;--surface:#16161f;--surface-hover:#1e1e2a;--border:#2a2a3a;--fg:#f5f5f5;--muted:#a0a0b0;--brand:#f59e0b;--brand-dark:#d97706;--like:#22c55e;--dislike:#ef4444}
+body{background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;line-height:1.5}
+a{color:var(--brand);text-decoration:none}
+/* Header */
+header{position:sticky;top:0;z-index:100;background:rgba(22,22,31,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
+nav{max-width:1280px;margin:0 auto;padding:0 1rem;height:4rem;display:flex;align-items:center;justify-content:space-between}
+.logo{font-size:1.5rem;font-weight:700}
+.logo span:first-child{color:var(--brand)}
+nav .links{display:flex;gap:1rem;align-items:center;font-size:.875rem}
+nav .links a{color:var(--muted);transition:color .15s}
+nav .links a:hover{color:var(--fg)}
+/* Main */
+main{max-width:1280px;margin:0 auto;padding:2rem 1rem}
+h1{font-size:1.875rem;font-weight:700;margin-bottom:.5rem}
+.subtitle{color:var(--muted);margin-bottom:2rem}
+/* Search bar */
+.toolbar{display:flex;gap:.75rem;margin-bottom:2rem;flex-wrap:wrap;align-items:center}
+.toolbar input,.toolbar select{background:var(--surface);border:1px solid var(--border);color:var(--fg);padding:.5rem .75rem;border-radius:.375rem;font-size:.875rem}
+.toolbar input{flex:1;min-width:200px}
+.toolbar input:focus,.toolbar select:focus{outline:none;border-color:var(--brand)}
+.toolbar input::placeholder{color:var(--muted)}
+.btn{background:var(--brand);color:#000;border:none;padding:.5rem 1rem;border-radius:.375rem;font-weight:500;cursor:pointer;transition:background .15s}
+.btn:hover{background:var(--brand-dark)}
+/* Song grid */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:1rem}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:.5rem;overflow:hidden;cursor:pointer;transition:border-color .15s}
+.card:hover{border-color:var(--brand)}
+.card-cover{aspect-ratio:1;position:relative;display:flex;align-items:center;justify-content:center;font-size:3rem;color:var(--muted)}
+.card-badge{position:absolute;top:.5rem;right:.5rem;background:rgba(0,0,0,.8);padding:.25rem .5rem;border-radius:.25rem;font-size:.75rem;font-weight:700}
+.card-body{padding:.75rem}
+.card-title{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-title:hover{color:var(--brand)}
+.card-artist{color:var(--muted);font-size:.875rem;margin-top:.25rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-stats{display:flex;gap:.75rem;margin-top:.5rem;font-size:.75rem;color:var(--muted)}
+.card-stats .like{color:var(--like)}
+.card-stats .dislike{color:var(--dislike)}
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:200;padding:1rem}
+.modal-overlay.active{display:flex}
+.modal{background:var(--bg);border:1px solid var(--border);border-radius:.75rem;max-width:800px;width:100%;max-height:90vh;overflow-y:auto}
+.modal-header{padding:2rem; border-bottom:1px solid var(--border)}
+.modal-song{display:flex;gap:1.5rem;flex-wrap:wrap}
+.modal-cover{width:200px;height:200px;border-radius:.5rem;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:5rem;color:var(--muted)}
+.modal-info{flex:1;min-width:200px}
+.modal-info h2{font-size:1.5rem;margin-bottom:.5rem}
+.modal-info .artist{font-size:1.125rem;color:var(--muted)}
+.modal-info .meta{margin-top:.5rem;font-size:.875rem;color:var(--muted)}
+.modal-info .meta span{margin-right:1rem}
+.modal-body{padding:2rem}
+.close-btn{position:absolute;top:1rem;right:1rem;background:var(--surface);border:1px solid var(--border);color:var(--fg);width:2.5rem;height:2.5rem;border-radius:50%;cursor:pointer;font-size:1.25rem;display:flex;align-items:center;justify-content:center}
+.close-btn:hover{background:var(--surface-hover)}
+.modal{position:relative}
+/* Rating section */
+.rating-section{background:var(--surface);border:1px solid var(--border);border-radius:.5rem;padding:1.5rem;margin-bottom:1.5rem}
+.rating-section h3{font-size:1.25rem;margin-bottom:1rem}
+.rating-buttons{display:flex;gap:.75rem}
+.rate-btn{display:flex;align-items:center;gap:.5rem;padding:.75rem 1.5rem;border-radius:.5rem;border:1px solid var(--border);background:var(--surface);color:var(--muted);cursor:pointer;font-weight:500;transition:all .15s}
+.rate-btn:hover{color:var(--fg)}
+.rate-btn.active.like{background:var(--like);color:#fff;border-color:var(--like)}
+.rate-btn.active.dislike{background:var(--dislike);color:#fff;border-color:var(--dislike)}
+.rating-bar{margin-top:1rem}
+.rating-bar-labels{display:flex;justify-content:space-between;font-size:.875rem;margin-bottom:.5rem}
+.rating-bar-track{height:.5rem;background:var(--bg);border-radius:.25rem;overflow:hidden}
+.rating-bar-fill{height:100%;background:var(--like);border-radius:.25rem;transition:width .3s}
+.login-hint{margin-top:.75rem;font-size:.875rem;color:var(--muted)}
+/* Comments */
+.comments h3{font-size:1.25rem;margin-bottom:1rem}
+.comment-form{margin-bottom:1.5rem}
+.comment-form textarea{width:100%;background:var(--surface);border:1px solid var(--border);color:var(--fg);padding:.75rem;border-radius:.5rem;resize:vertical;min-height:80px;font-family:inherit}
+.comment-form textarea:focus{outline:none;border-color:var(--brand)}
+.comment-form-bottom{display:flex;justify-content:space-between;align-items:center;margin-top:.5rem}
+.char-count{font-size:.75rem;color:var(--muted)}
+.comment-list{display:flex;flex-direction:column;gap:1rem}
+.comment{background:var(--surface);border:1px solid var(--border);border-radius:.5rem;padding:1rem}
+.comment-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem}
+.comment-author{font-weight:600;color:var(--brand)}
+.comment-date{font-size:.75rem;color:var(--muted)}
+.comment-delete{font-size:.75rem;color:var(--dislike);cursor:pointer;background:none;border:none}
+.comment-content{white-space:pre-wrap}
+.no-comments{text-align:center;color:var(--muted);padding:2rem}
+.empty{text-align:center;color:var(--muted);padding:3rem}
+/* Username modal */
+.name-overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);display:none;align-items:center;justify-content:center;z-index:300}
+.name-overlay.active{display:flex}
+.name-box{background:var(--bg);border:1px solid var(--border);border-radius:.75rem;padding:2rem;max-width:400px;width:90%}
+.name-box h3{margin-bottom:1rem}
+.name-box input{width:100%;background:var(--surface);border:1px solid var(--border);color:var(--fg);padding:.5rem .75rem;border-radius:.375rem;margin-bottom:1rem}
+.name-box .btn{width:100%}
+/* Footer */
+footer{border-top:1px solid var(--border);background:rgba(22,22,31,.5);padding:1.5rem;text-align:center;color:var(--muted);font-size:.875rem}
+footer p+p{margin-top:.25rem}
+@media(max-width:640px){.modal-song{flex-direction:column}.modal-cover{width:100%;height:auto;aspect-ratio:1}.grid{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<header>
+<nav>
+<div class="logo"><span>NCS</span> <span>Ratings</span></div>
+<div class="links"><a href="#" id="stats-link">统计</a></div>
+</nav>
+</header>
+<main>
+<h1>NCS 歌曲评分</h1>
+<p class="subtitle">浏览 NoCopyrightSounds 厂牌歌曲，为喜欢的歌评分评论</p>
+<div class="toolbar">
+<input type="text" id="search" placeholder="搜索歌曲或艺术家...">
+<select id="sort">
+<option value="popular">最受欢迎</option>
+<option value="az">标题 A-Z</option>
+<option value="za">标题 Z-A</option>
+<option value="rating">好评率</option>
+</select>
+</div>
+<div class="grid" id="grid"></div>
+</main>
+<div class="modal-overlay" id="modal-overlay">
+<div class="modal" id="modal"></div>
+</div>
+<div class="name-overlay" id="name-overlay">
+<div class="name-box">
+<h3>设置你的昵称</h3>
+<p style="color:var(--muted);font-size:.875rem;margin-bottom:1rem">评分和评论前需要设置一个昵称（仅存在本地浏览器）</p>
+<input type="text" id="username-input" placeholder="输入昵称..." maxlength="20">
+<button class="btn" id="save-username">确定</button>
+</div>
+</div>
+<footer>
+<p>NCS Ratings - 社区驱动的 NCS 歌曲评分平台</p>
+<p>本站与 NoCopyrightSounds 官方无关，仅用于社区评分讨论 | 数据为公开信息</p>
+</footer>
+<script src="songs-data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
