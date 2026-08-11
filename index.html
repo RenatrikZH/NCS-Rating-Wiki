@@ -6,137 +6,1954 @@
 <title>NCS Ratings - NoCopyrightSounds 歌曲评分社区</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-:root{--bg:#0a0a0f;--surface:#16161f;--surface-hover:#1e1e2a;--border:#2a2a3a;--fg:#f5f5f5;--muted:#a0a0b0;--brand:#f59e0b;--brand-dark:#d97706;--like:#22c55e;--dislike:#ef4444}
-body{background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;line-height:1.5}
+:root{
+  --bg:#0a0a14;
+  --brand:#ffa726;
+  --brand2:#ff7043;
+  --brand3:#ff5722;
+  --like:#4caf50;
+  --dislike:#f44336;
+  --text:#ffffff;
+  --text-dim:rgba(255,255,255,.65);
+  --glass:rgba(255,255,255,.06);
+  --glass-strong:rgba(255,255,255,.1);
+  --glass-border:rgba(255,255,255,.14);
+  --shadow:0 8px 32px rgba(0,0,0,.4);
+  --ease:cubic-bezier(.4,0,.2,1);
+}
+html{scroll-behavior:smooth}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  overflow-x:hidden;
+  position:relative;
+  line-height:1.5;
+}
+/* 动画渐变背景 */
+body::before{
+  content:'';
+  position:fixed;
+  inset:0;
+  background:linear-gradient(-45deg,#0a0a14,#1a1040,#2a1040,#14142a,#0a0a14);
+  background-size:400% 400%;
+  animation:gradientFlow 25s ease infinite;
+  z-index:-2;
+}
+@keyframes gradientFlow{
+  0%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+  100%{background-position:0% 50%}
+}
+/* 液态 blob 装饰 */
+.blob{
+  position:fixed;
+  border-radius:50%;
+  filter:blur(90px);
+  opacity:.35;
+  z-index:-1;
+  pointer-events:none;
+  animation:blobFloat 18s ease-in-out infinite,blobMorph 10s ease-in-out infinite;
+}
+.blob1{width:520px;height:520px;background:radial-gradient(circle,#ff7043,transparent 70%);top:-150px;left:-150px}
+.blob2{width:440px;height:440px;background:radial-gradient(circle,#ffa726,transparent 70%);bottom:-120px;right:-120px;animation-delay:-6s}
+.blob3{width:380px;height:380px;background:radial-gradient(circle,#7c4dff,transparent 70%);top:45%;right:25%;animation-delay:-12s}
+.blob4{width:300px;height:300px;background:radial-gradient(circle,#ff5722,transparent 70%);top:60%;left:10%;animation-delay:-3s}
+@keyframes blobFloat{
+  0%,100%{transform:translate(0,0) scale(1)}
+  33%{transform:translate(60px,-50px) scale(1.08)}
+  66%{transform:translate(-40px,40px) scale(.95)}
+}
+@keyframes blobMorph{
+  0%,100%{border-radius:50% 50% 50% 50%}
+  25%{border-radius:60% 40% 55% 45%}
+  50%{border-radius:40% 60% 60% 40%}
+  75%{border-radius:55% 45% 40% 60%}
+}
+button{font-family:inherit;cursor:pointer;border:none;outline:none;color:inherit}
+input,textarea{font-family:inherit;outline:none}
 a{color:var(--brand);text-decoration:none}
-/* Header */
-header{position:sticky;top:0;z-index:100;background:rgba(22,22,31,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
-nav{max-width:1280px;margin:0 auto;padding:0 1rem;height:4rem;display:flex;align-items:center;justify-content:space-between}
-.logo{font-size:1.5rem;font-weight:700}
-.logo span:first-child{color:var(--brand)}
-nav .links{display:flex;gap:1rem;align-items:center;font-size:.875rem}
-nav .links a{color:var(--muted);transition:color .15s}
-nav .links a:hover{color:var(--fg)}
-/* Main */
-main{max-width:1280px;margin:0 auto;padding:2rem 1rem}
-h1{font-size:1.875rem;font-weight:700;margin-bottom:.5rem}
-.subtitle{color:var(--muted);margin-bottom:2rem}
-/* Search bar */
-.toolbar{display:flex;gap:.75rem;margin-bottom:2rem;flex-wrap:wrap;align-items:center}
-.toolbar input,.toolbar select{background:var(--surface);border:1px solid var(--border);color:var(--fg);padding:.5rem .75rem;border-radius:.375rem;font-size:.875rem}
-.toolbar input{flex:1;min-width:200px}
-.toolbar input:focus,.toolbar select:focus{outline:none;border-color:var(--brand)}
-.toolbar input::placeholder{color:var(--muted)}
-.btn{background:var(--brand);color:#000;border:none;padding:.5rem 1rem;border-radius:.375rem;font-weight:500;cursor:pointer;transition:background .15s}
-.btn:hover{background:var(--brand-dark)}
-/* Song grid */
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:1rem}
-.card{background:var(--surface);border:1px solid var(--border);border-radius:.5rem;overflow:hidden;cursor:pointer;transition:border-color .15s}
-.card:hover{border-color:var(--brand)}
-.card-cover{aspect-ratio:1;position:relative;display:flex;align-items:center;justify-content:center;font-size:3rem;color:var(--muted)}
-.card-badge{position:absolute;top:.5rem;right:.5rem;background:rgba(0,0,0,.8);padding:.25rem .5rem;border-radius:.25rem;font-size:.75rem;font-weight:700}
-.card-body{padding:.75rem}
-.card-title{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.card-title:hover{color:var(--brand)}
-.card-artist{color:var(--muted);font-size:.875rem;margin-top:.25rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.card-stats{display:flex;gap:.75rem;margin-top:.5rem;font-size:.75rem;color:var(--muted)}
-.card-stats .like{color:var(--like)}
-.card-stats .dislike{color:var(--dislike)}
-/* Modal */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:200;padding:1rem}
-.modal-overlay.active{display:flex}
-.modal{background:var(--bg);border:1px solid var(--border);border-radius:.75rem;max-width:800px;width:100%;max-height:90vh;overflow-y:auto}
-.modal-header{padding:2rem; border-bottom:1px solid var(--border)}
-.modal-song{display:flex;gap:1.5rem;flex-wrap:wrap}
-.modal-cover{width:200px;height:200px;border-radius:.5rem;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:5rem;color:var(--muted)}
-.modal-info{flex:1;min-width:200px}
-.modal-info h2{font-size:1.5rem;margin-bottom:.5rem}
-.modal-info .artist{font-size:1.125rem;color:var(--muted)}
-.modal-info .meta{margin-top:.5rem;font-size:.875rem;color:var(--muted)}
-.modal-info .meta span{margin-right:1rem}
-.modal-body{padding:2rem}
-.close-btn{position:absolute;top:1rem;right:1rem;background:var(--surface);border:1px solid var(--border);color:var(--fg);width:2.5rem;height:2.5rem;border-radius:50%;cursor:pointer;font-size:1.25rem;display:flex;align-items:center;justify-content:center}
-.close-btn:hover{background:var(--surface-hover)}
-.modal{position:relative}
-/* Rating section */
-.rating-section{background:var(--surface);border:1px solid var(--border);border-radius:.5rem;padding:1.5rem;margin-bottom:1.5rem}
-.rating-section h3{font-size:1.25rem;margin-bottom:1rem}
-.rating-buttons{display:flex;gap:.75rem}
-.rate-btn{display:flex;align-items:center;gap:.5rem;padding:.75rem 1.5rem;border-radius:.5rem;border:1px solid var(--border);background:var(--surface);color:var(--muted);cursor:pointer;font-weight:500;transition:all .15s}
-.rate-btn:hover{color:var(--fg)}
-.rate-btn.active.like{background:var(--like);color:#fff;border-color:var(--like)}
-.rate-btn.active.dislike{background:var(--dislike);color:#fff;border-color:var(--dislike)}
-.rating-bar{margin-top:1rem}
-.rating-bar-labels{display:flex;justify-content:space-between;font-size:.875rem;margin-bottom:.5rem}
-.rating-bar-track{height:.5rem;background:var(--bg);border-radius:.25rem;overflow:hidden}
-.rating-bar-fill{height:100%;background:var(--like);border-radius:.25rem;transition:width .3s}
-.login-hint{margin-top:.75rem;font-size:.875rem;color:var(--muted)}
-/* Comments */
-.comments h3{font-size:1.25rem;margin-bottom:1rem}
-.comment-form{margin-bottom:1.5rem}
-.comment-form textarea{width:100%;background:var(--surface);border:1px solid var(--border);color:var(--fg);padding:.75rem;border-radius:.5rem;resize:vertical;min-height:80px;font-family:inherit}
-.comment-form textarea:focus{outline:none;border-color:var(--brand)}
-.comment-form-bottom{display:flex;justify-content:space-between;align-items:center;margin-top:.5rem}
-.char-count{font-size:.75rem;color:var(--muted)}
-.comment-list{display:flex;flex-direction:column;gap:1rem}
-.comment{background:var(--surface);border:1px solid var(--border);border-radius:.5rem;padding:1rem}
-.comment-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem}
-.comment-author{font-weight:600;color:var(--brand)}
-.comment-date{font-size:.75rem;color:var(--muted)}
-.comment-delete{font-size:.75rem;color:var(--dislike);cursor:pointer;background:none;border:none}
-.comment-content{white-space:pre-wrap}
-.no-comments{text-align:center;color:var(--muted);padding:2rem}
-.empty{text-align:center;color:var(--muted);padding:3rem}
-/* Username modal */
-.name-overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);display:none;align-items:center;justify-content:center;z-index:300}
-.name-overlay.active{display:flex}
-.name-box{background:var(--bg);border:1px solid var(--border);border-radius:.75rem;padding:2rem;max-width:400px;width:90%}
-.name-box h3{margin-bottom:1rem}
-.name-box input{width:100%;background:var(--surface);border:1px solid var(--border);color:var(--fg);padding:.5rem .75rem;border-radius:.375rem;margin-bottom:1rem}
-.name-box .btn{width:100%}
-/* Footer */
-footer{border-top:1px solid var(--border);background:rgba(22,22,31,.5);padding:1.5rem;text-align:center;color:var(--muted);font-size:.875rem}
-footer p+p{margin-top:.25rem}
-@media(max-width:640px){.modal-song{flex-direction:column}.modal-cover{width:100%;height:auto;aspect-ratio:1}.grid{grid-template-columns:repeat(2,1fr)}}
+
+/* ============ HEADER ============ */
+header{
+  position:sticky;
+  top:0;
+  z-index:90;
+  background:rgba(10,10,20,.6);
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--glass-border);
+}
+nav{
+  max-width:1400px;
+  margin:0 auto;
+  padding:0 1.25rem;
+  height:4.2rem;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:1rem;
+}
+.logo{
+  font-size:1.4rem;
+  font-weight:800;
+  display:flex;
+  align-items:center;
+  gap:.5rem;
+  white-space:nowrap;
+}
+.logo .b1{background:linear-gradient(135deg,var(--brand),var(--brand3));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.logo .dot{width:8px;height:8px;border-radius:50%;background:var(--brand);box-shadow:0 0 12px var(--brand)}
+.nav-right{display:flex;align-items:center;gap:.75rem}
+.search-box{
+  position:relative;
+  display:flex;
+  align-items:center;
+}
+.search-box input{
+  background:var(--glass);
+  backdrop-filter:blur(10px);
+  border:1px solid var(--glass-border);
+  border-radius:24px;
+  padding:.55rem 1rem .55rem 2.4rem;
+  color:var(--text);
+  width:220px;
+  font-size:.875rem;
+  transition:all .3s var(--ease);
+}
+.search-box input:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(255,167,38,.15);width:260px}
+.search-box input::placeholder{color:var(--text-dim)}
+.search-box .ico{position:absolute;left:.85rem;color:var(--text-dim);font-size:.9rem;pointer-events:none}
+.sort-select{
+  background:var(--glass);
+  backdrop-filter:blur(10px);
+  border:1px solid var(--glass-border);
+  border-radius:24px;
+  padding:.55rem 2rem .55rem 1rem;
+  color:var(--text);
+  font-size:.875rem;
+  cursor:pointer;
+  appearance:none;
+  -webkit-appearance:none;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2'><polyline points='6 9 12 15 18 9'/></svg>");
+  background-repeat:no-repeat;
+  background-position:right .8rem center;
+  transition:all .3s var(--ease);
+}
+.sort-select:hover{border-color:var(--brand)}
+
+/* 用户菜单 */
+.user-menu{position:relative}
+.user-btn{
+  display:flex;
+  align-items:center;
+  gap:.5rem;
+  background:var(--glass);
+  backdrop-filter:blur(10px);
+  border:1px solid var(--glass-border);
+  border-radius:24px;
+  padding:.35rem .9rem .35rem .35rem;
+  color:var(--text);
+  transition:all .3s var(--ease);
+}
+.user-btn:hover{background:var(--glass-strong);border-color:var(--brand)}
+.user-avatar{
+  width:32px;height:32px;
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.1rem;
+  background:linear-gradient(135deg,var(--brand),var(--brand3));
+  overflow:hidden;
+  flex-shrink:0;
+}
+.user-avatar img{width:100%;height:100%;object-fit:cover}
+.user-name{font-size:.875rem;font-weight:600;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dropdown{
+  position:absolute;
+  top:calc(100% + .5rem);
+  right:0;
+  min-width:180px;
+  background:rgba(20,20,40,.85);
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+  border:1px solid var(--glass-border);
+  border-radius:14px;
+  padding:.5rem;
+  box-shadow:var(--shadow);
+  opacity:0;
+  visibility:hidden;
+  transform:translateY(-10px) scale(.96);
+  transition:all .3s var(--ease);
+  z-index:100;
+}
+.dropdown.open{opacity:1;visibility:visible;transform:translateY(0) scale(1)}
+.dropdown-item{
+  display:flex;
+  align-items:center;
+  gap:.6rem;
+  width:100%;
+  padding:.65rem .8rem;
+  background:transparent;
+  border-radius:8px;
+  color:var(--text);
+  font-size:.875rem;
+  text-align:left;
+  transition:all .25s var(--ease);
+}
+.dropdown-item:hover{background:var(--glass-strong)}
+.dropdown-item .di-ico{font-size:1rem;width:18px;text-align:center}
+.dropdown-divider{height:1px;background:var(--glass-border);margin:.3rem 0}
+
+.btn-primary{
+  background:linear-gradient(135deg,var(--brand),var(--brand2));
+  color:#1a1a2e;
+  font-weight:700;
+  padding:.6rem 1.4rem;
+  border-radius:24px;
+  font-size:.875rem;
+  transition:all .3s var(--ease);
+  box-shadow:0 4px 14px rgba(255,112,67,.35);
+}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(255,112,67,.5)}
+.btn-primary:active{transform:translateY(0)}
+
+/* ============ MAIN ============ */
+main{max-width:1400px;margin:0 auto;padding:2rem 1.25rem 4rem}
+.hero{
+  text-align:center;
+  margin-bottom:2.5rem;
+  padding:1.5rem 0;
+}
+.hero h1{
+  font-size:2.6rem;
+  font-weight:800;
+  margin-bottom:.6rem;
+  background:linear-gradient(135deg,#fff,#ffa726,#ff7043);
+  -webkit-background-clip:text;
+  background-clip:text;
+  -webkit-text-fill-color:transparent;
+  letter-spacing:-1px;
+}
+.hero p{color:var(--text-dim);font-size:1.05rem}
+.hero .stat-row{display:flex;justify-content:center;gap:2rem;margin-top:1.25rem;flex-wrap:wrap}
+.hero .stat-mini{display:flex;flex-direction:column;align-items:center}
+.hero .stat-mini .num{font-size:1.4rem;font-weight:800;color:var(--brand)}
+.hero .stat-mini .lbl{font-size:.75rem;color:var(--text-dim)}
+
+.song-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+  gap:1.25rem;
+}
+
+/* 歌曲卡片 */
+.song-card{
+  position:relative;
+  background:var(--glass);
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+  border:1px solid var(--glass-border);
+  border-radius:20px;
+  overflow:hidden;
+  cursor:pointer;
+  transition:transform .4s var(--ease),box-shadow .4s var(--ease),border-color .4s var(--ease);
+  animation:cardIn .5s var(--ease) both;
+}
+@keyframes cardIn{
+  from{opacity:0;transform:translateY(20px) scale(.97)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+.song-card:hover{
+  transform:translateY(-8px) scale(1.02);
+  box-shadow:0 16px 40px rgba(0,0,0,.45),0 0 0 1px var(--brand);
+  border-color:var(--brand);
+}
+.cover{
+  position:relative;
+  width:100%;
+  aspect-ratio:1;
+  overflow:hidden;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.cover::before{
+  content:'';
+  position:absolute;
+  inset:-50%;
+  background:inherit;
+  animation:coverSpin 20s linear infinite;
+}
+.cover .cover-bg{
+  position:absolute;
+  inset:0;
+  background:inherit;
+}
+.cover .cover-letter{
+  position:relative;
+  z-index:2;
+  font-size:5rem;
+  font-weight:900;
+  color:rgba(255,255,255,.5);
+  text-shadow:0 4px 20px rgba(0,0,0,.4);
+  letter-spacing:-2px;
+}
+.cover .cover-glow{
+  position:absolute;
+  width:60%;height:60%;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(255,255,255,.25),transparent 70%);
+  filter:blur(20px);
+  animation:coverGlow 4s ease-in-out infinite;
+}
+@keyframes coverSpin{
+  from{transform:rotate(0deg)}
+  to{transform:rotate(360deg)}
+}
+@keyframes coverGlow{
+  0%,100%{transform:scale(1);opacity:.5}
+  50%{transform:scale(1.2);opacity:.8}
+}
+.card-body{padding:1rem 1.1rem 1.1rem}
+.card-title{
+  font-size:1.05rem;
+  font-weight:700;
+  margin-bottom:.25rem;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.card-artist{
+  font-size:.8rem;
+  color:var(--text-dim);
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  margin-bottom:.6rem;
+}
+.card-tags{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.75rem}
+.tag{
+  font-size:.7rem;
+  padding:.2rem .6rem;
+  border-radius:10px;
+  background:rgba(255,167,38,.15);
+  color:var(--brand);
+  border:1px solid rgba(255,167,38,.25);
+}
+.tag.year{background:rgba(124,77,255,.15);color:#b39ddb;border-color:rgba(124,77,255,.25)}
+.rating-row{display:flex;align-items:center;justify-content:space-between;font-size:.78rem;margin-bottom:.4rem}
+.rating-row .likes{color:var(--like)}
+.rating-row .dislikes{color:var(--dislike)}
+.rating-row .score{color:var(--brand);font-weight:700}
+.progress{
+  width:100%;
+  height:6px;
+  background:rgba(255,255,255,.08);
+  border-radius:6px;
+  overflow:hidden;
+}
+.progress-bar{
+  height:100%;
+  background:linear-gradient(90deg,var(--brand),var(--brand2));
+  border-radius:6px;
+  transition:width .8s var(--ease);
+}
+
+/* ============ MODAL ============ */
+.modal-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(5,5,15,.7);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+  z-index:200;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:1rem;
+  opacity:0;
+  transition:opacity .3s var(--ease);
+}
+.modal-overlay.show{display:flex;opacity:1}
+.modal{
+  position:relative;
+  background:rgba(22,22,40,.92);
+  backdrop-filter:blur(24px);
+  -webkit-backdrop-filter:blur(24px);
+  border:1px solid var(--glass-border);
+  border-radius:22px;
+  width:100%;
+  max-width:560px;
+  max-height:90vh;
+  overflow-y:auto;
+  box-shadow:var(--shadow);
+  transform:scale(.9) translateY(20px);
+  opacity:0;
+  transition:all .35s var(--ease);
+}
+.modal-overlay.show .modal{transform:scale(1) translateY(0);opacity:1}
+.modal.lg{max-width:760px}
+.modal.xl{max-width:1100px}
+.modal-body{padding:1.75rem}
+.modal-title{
+  font-size:1.5rem;
+  font-weight:800;
+  margin-bottom:1.25rem;
+  padding-right:3rem;
+}
+/* 关闭按钮 - 固定右上角顶部 */
+.modal-close{
+  position:absolute;
+  top:14px;
+  right:14px;
+  width:42px;
+  height:42px;
+  border-radius:50%;
+  background:rgba(255,255,255,.12);
+  backdrop-filter:blur(10px);
+  border:1px solid var(--glass-border);
+  color:#fff;
+  font-size:1.3rem;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:300;
+  transition:all .3s var(--ease);
+  line-height:1;
+}
+.modal-close:hover{
+  transform:scale(1.15) rotate(90deg);
+  background:rgba(255,87,34,.4);
+  border-color:var(--brand3);
+}
+.modal-close:active{transform:scale(.95)}
+
+/* 表单 */
+.form-group{margin-bottom:1rem}
+.form-group label{display:block;font-size:.8rem;color:var(--text-dim);margin-bottom:.4rem}
+.form-group input,.form-group textarea,.form-group select{
+  width:100%;
+  background:var(--glass);
+  border:1px solid var(--glass-border);
+  border-radius:12px;
+  padding:.7rem 1rem;
+  color:var(--text);
+  font-size:.9rem;
+  transition:all .3s var(--ease);
+}
+.form-group input:focus,.form-group textarea:focus,.form-group select:focus{
+  border-color:var(--brand);
+  box-shadow:0 0 0 3px rgba(255,167,38,.15);
+}
+.form-group textarea{resize:vertical;min-height:80px}
+.form-row{display:flex;gap:.75rem}
+.form-row .form-group{flex:1}
+.btn-block{width:100%;padding:.8rem;border-radius:12px;font-size:.95rem;font-weight:700}
+.auth-switch{
+  text-align:center;
+  margin-top:1rem;
+  font-size:.85rem;
+  color:var(--text-dim);
+}
+.auth-switch a{cursor:pointer;font-weight:600}
+.auth-error{
+  color:var(--dislike);
+  font-size:.8rem;
+  margin-top:.4rem;
+  min-height:1rem;
+}
+
+/* 歌曲详情 */
+.detail-head{
+  display:flex;
+  gap:1.25rem;
+  margin-bottom:1.25rem;
+  flex-wrap:wrap;
+}
+.detail-cover{
+  width:180px;
+  height:180px;
+  border-radius:18px;
+  overflow:hidden;
+  position:relative;
+  flex-shrink:0;
+  box-shadow:0 12px 30px rgba(0,0,0,.5);
+}
+.detail-cover .cover-bg{position:absolute;inset:0}
+.detail-cover .cover-letter{position:relative;z-index:2;font-size:5rem;font-weight:900;color:rgba(255,255,255,.55)}
+.detail-cover .cover-glow{
+  position:absolute;width:70%;height:70%;top:15%;left:15%;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(255,255,255,.3),transparent 70%);
+  filter:blur(20px);
+  animation:coverGlow 4s ease-in-out infinite;
+}
+.detail-cover::after{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:linear-gradient(135deg,transparent 40%,rgba(255,255,255,.1));
+  pointer-events:none;
+}
+.detail-info{flex:1;min-width:200px}
+.detail-info h2{font-size:1.5rem;font-weight:800;margin-bottom:.3rem}
+.detail-info .artist{color:var(--text-dim);font-size:.95rem;margin-bottom:.6rem}
+.detail-info .tags{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.8rem}
+.detail-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;margin-top:.5rem}
+.detail-stat{
+  background:var(--glass);
+  border:1px solid var(--glass-border);
+  border-radius:12px;
+  padding:.6rem;
+  text-align:center;
+}
+.detail-stat .v{font-size:1.2rem;font-weight:800}
+.detail-stat .l{font-size:.7rem;color:var(--text-dim)}
+.detail-stat.like .v{color:var(--like)}
+.detail-stat.dislike .v{color:var(--dislike)}
+.detail-stat.score .v{color:var(--brand)}
+.rate-section{
+  margin:1.25rem 0;
+  padding:1rem;
+  background:var(--glass);
+  border:1px solid var(--glass-border);
+  border-radius:14px;
+}
+.rate-buttons{display:flex;gap:.75rem;margin-top:.6rem}
+.rate-btn{
+  flex:1;
+  padding:.7rem;
+  border-radius:12px;
+  font-weight:700;
+  font-size:.9rem;
+  background:var(--glass);
+  border:1px solid var(--glass-border);
+  color:var(--text);
+  transition:all .3s var(--ease);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:.4rem;
+}
+.rate-btn.like:hover{background:rgba(76,175,80,.2);border-color:var(--like);transform:translateY(-2px)}
+.rate-btn.dislike:hover{background:rgba(244,67,54,.2);border-color:var(--dislike);transform:translateY(-2px)}
+.rate-btn.active.like{background:rgba(76,175,80,.3);border-color:var(--like);color:var(--like)}
+.rate-btn.active.dislike{background:rgba(244,67,54,.3);border-color:var(--dislike);color:var(--dislike)}
+.detail-progress{margin-top:.8rem}
+.detail-progress .pl{display:flex;justify-content:space-between;font-size:.78rem;margin-bottom:.3rem}
+.comments-section{margin-top:1.25rem}
+.comments-section h3{font-size:1.1rem;font-weight:700;margin-bottom:.8rem}
+.comment-item{
+  display:flex;
+  gap:.75rem;
+  padding:.8rem;
+  background:var(--glass);
+  border:1px solid var(--glass-border);
+  border-radius:12px;
+  margin-bottom:.6rem;
+  animation:cardIn .3s var(--ease) both;
+}
+.comment-item .c-avatar{
+  width:34px;height:34px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.1rem;
+  background:linear-gradient(135deg,var(--brand),var(--brand3));
+  flex-shrink:0;
+  overflow:hidden;
+}
+.comment-item .c-avatar img{width:100%;height:100%;object-fit:cover}
+.comment-item .c-body{flex:1;min-width:0}
+.comment-item .c-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:.2rem}
+.comment-item .c-user{font-size:.82rem;font-weight:700}
+.comment-item .c-date{font-size:.7rem;color:var(--text-dim)}
+.comment-item .c-text{font-size:.875rem;word-break:break-word}
+.comment-item .c-del{
+  background:transparent;
+  color:var(--dislike);
+  font-size:.72rem;
+  padding:.2rem .5rem;
+  border-radius:6px;
+  opacity:.7;
+  transition:all .25s var(--ease);
+}
+.comment-item .c-del:hover{opacity:1;background:rgba(244,67,54,.15)}
+.comment-form{display:flex;gap:.5rem;margin-bottom:1rem}
+.comment-form input{flex:1;background:var(--glass);border:1px solid var(--glass-border);border-radius:12px;padding:.6rem .9rem;color:var(--text);font-size:.875rem}
+.comment-form input:focus{border-color:var(--brand)}
+.empty-state{text-align:center;padding:1.5rem;color:var(--text-dim);font-size:.875rem}
+
+/* 设置弹窗 */
+.avatar-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:.6rem;margin-bottom:1rem}
+.avatar-opt{
+  aspect-ratio:1;
+  border-radius:12px;
+  background:var(--glass);
+  border:2px solid transparent;
+  font-size:1.6rem;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition:all .3s var(--ease);
+}
+.avatar-opt:hover{transform:scale(1.1);background:var(--glass-strong)}
+.avatar-opt.active{border-color:var(--brand);background:rgba(255,167,38,.15)}
+.upload-row{display:flex;gap:.6rem;align-items:center}
+.upload-row input[type=file]{flex:1;font-size:.8rem}
+.current-avatar{
+  width:56px;height:56px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.8rem;
+  background:linear-gradient(135deg,var(--brand),var(--brand3));
+  overflow:hidden;
+  flex-shrink:0;
+}
+.current-avatar img{width:100%;height:100%;object-fit:cover}
+.phone-display{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:.8rem 1rem;
+  background:var(--glass);
+  border:1px solid var(--glass-border);
+  border-radius:12px;
+  margin-bottom:1rem;
+}
+.phone-display .bound{color:var(--like);font-weight:600;font-size:.875rem}
+.phone-display .unbind{color:var(--text-dim);font-size:.875rem}
+
+/* 后台 */
+.admin-tabs{
+  display:flex;
+  gap:.4rem;
+  margin-bottom:1.25rem;
+  flex-wrap:wrap;
+  border-bottom:1px solid var(--glass-border);
+  padding-bottom:.5rem;
+}
+.admin-tab{
+  padding:.55rem 1rem;
+  border-radius:10px;
+  background:transparent;
+  color:var(--text-dim);
+  font-size:.85rem;
+  font-weight:600;
+  transition:all .3s var(--ease);
+}
+.admin-tab:hover{color:var(--text);background:var(--glass)}
+.admin-tab.active{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#1a1a2e}
+.admin-panel{display:none;animation:cardIn .35s var(--ease) both}
+.admin-panel.active{display:block}
+.stat-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-bottom:1.5rem}
+.stat-card{
+  background:var(--glass);
+  border:1px solid var(--glass-border);
+  border-radius:16px;
+  padding:1.2rem;
+  position:relative;
+  overflow:hidden;
+  transition:transform .3s var(--ease);
+}
+.stat-card:hover{transform:translateY(-3px)}
+.stat-card .sc-ico{position:absolute;right:.8rem;top:.8rem;font-size:1.8rem;opacity:.25}
+.stat-card .sc-num{font-size:2rem;font-weight:800;background:linear-gradient(135deg,var(--brand),var(--brand2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.stat-card .sc-lbl{font-size:.8rem;color:var(--text-dim);margin-top:.2rem}
+.chart-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:1rem;margin-bottom:1.5rem}
+.chart-box{
+  background:var(--glass);
+  border:1px solid var(--glass-border);
+  border-radius:16px;
+  padding:1rem;
+}
+.chart-box h4{font-size:.95rem;font-weight:700;margin-bottom:.6rem;color:var(--brand)}
+.chart-box canvas{width:100%;display:block;border-radius:8px}
+.data-table{width:100%;border-collapse:collapse;font-size:.8rem}
+.data-table th,.data-table td{padding:.6rem .5rem;text-align:left;border-bottom:1px solid var(--glass-border)}
+.data-table th{color:var(--brand);font-weight:700;position:sticky;top:0;background:rgba(22,22,40,.95)}
+.table-wrap{max-height:400px;overflow:auto;border:1px solid var(--glass-border);border-radius:12px}
+.data-table tr:hover td{background:var(--glass)}
+.mini-bar{display:inline-block;width:60px;height:6px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden;vertical-align:middle}
+.mini-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--brand),var(--brand2))}
+
+/* ============ FOOTER ============ */
+footer{
+  text-align:center;
+  padding:2rem 1rem;
+  color:var(--text-dim);
+  font-size:.82rem;
+  border-top:1px solid var(--glass-border);
+  background:rgba(10,10,20,.5);
+  backdrop-filter:blur(10px);
+}
+footer a{color:var(--brand)}
+
+/* 涟漪 */
+.ripple{
+  position:absolute;
+  border-radius:50%;
+  background:rgba(255,255,255,.4);
+  transform:scale(0);
+  animation:rippleAnim .6s var(--ease);
+  pointer-events:none;
+}
+@keyframes rippleAnim{
+  to{transform:scale(2.5);opacity:0}
+}
+
+/* Toast */
+.toast{
+  position:fixed;
+  bottom:2rem;
+  left:50%;
+  transform:translateX(-50%) translateY(100px);
+  background:rgba(20,20,40,.95);
+  backdrop-filter:blur(16px);
+  border:1px solid var(--glass-border);
+  border-radius:12px;
+  padding:.8rem 1.4rem;
+  color:var(--text);
+  font-size:.875rem;
+  z-index:500;
+  opacity:0;
+  transition:all .3s var(--ease);
+  box-shadow:var(--shadow);
+}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.toast.success{border-color:var(--like)}
+.toast.error{border-color:var(--dislike)}
+
+/* 响应式 */
+@media (max-width:768px){
+  nav{flex-wrap:wrap;height:auto;padding:.6rem 1rem;gap:.5rem}
+  .logo{font-size:1.15rem}
+  .search-box input{width:140px}
+  .search-box input:focus{width:160px}
+  .sort-select{font-size:.8rem;padding:.45rem 1.6rem .45rem .8rem}
+  .hero h1{font-size:1.8rem}
+  .hero .stat-row{gap:1.2rem}
+  .song-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:.8rem}
+  .cover .cover-letter{font-size:3rem}
+  .card-title{font-size:.9rem}
+  .card-artist{font-size:.72rem}
+  .modal-body{padding:1.2rem}
+  .modal-title{font-size:1.2rem}
+  .detail-head{flex-direction:column}
+  .detail-cover{width:100%;height:200px}
+  .avatar-grid{grid-template-columns:repeat(4,1fr)}
+  .stat-cards{grid-template-columns:repeat(2,1fr)}
+  .chart-grid{grid-template-columns:1fr}
+  .user-name{display:none}
+  .btn-primary{padding:.5rem 1rem;font-size:.8rem}
+}
+@media (max-width:480px){
+  .song-grid{grid-template-columns:repeat(2,1fr)}
+}
 </style>
 </head>
 <body>
+
+<div class="blob blob1"></div>
+<div class="blob blob2"></div>
+<div class="blob blob3"></div>
+<div class="blob blob4"></div>
+
 <header>
-<nav>
-<div class="logo"><span>NCS</span> <span>Ratings</span></div>
-<div class="links"><a href="#" id="stats-link">统计</a></div>
-</nav>
+  <nav>
+    <div class="logo"><span class="b1">NCS</span> Ratings <span class="dot"></span></div>
+    <div class="nav-right">
+      <div class="search-box">
+        <span class="ico">🔍</span>
+        <input type="text" id="searchInput" placeholder="搜索歌曲/艺术家...">
+      </div>
+      <select class="sort-select" id="sortSelect">
+        <option value="popular">最受欢迎</option>
+        <option value="title">标题</option>
+        <option value="wilson">好评率</option>
+      </select>
+      <div id="authArea"></div>
+    </div>
+  </nav>
 </header>
+
 <main>
-<h1>NCS 歌曲评分</h1>
-<p class="subtitle">浏览 NoCopyrightSounds 厂牌歌曲，为喜欢的歌评分评论</p>
-<div class="toolbar">
-<input type="text" id="search" placeholder="搜索歌曲或艺术家...">
-<select id="sort">
-<option value="popular">最受欢迎</option>
-<option value="az">标题 A-Z</option>
-<option value="za">标题 Z-A</option>
-<option value="rating">好评率</option>
-</select>
-</div>
-<div class="grid" id="grid"></div>
+  <div class="hero">
+    <h1>NoCopyrightSounds 歌曲评分社区</h1>
+    <p>为每一首 NCS 音乐打分 · 发现好音乐 · 分享你的听感</p>
+    <div class="stat-row" id="heroStats"></div>
+  </div>
+  <div class="song-grid" id="songGrid"></div>
 </main>
-<div class="modal-overlay" id="modal-overlay">
-<div class="modal" id="modal"></div>
-</div>
-<div class="name-overlay" id="name-overlay">
-<div class="name-box">
-<h3>设置你的昵称</h3>
-<p style="color:var(--muted);font-size:.875rem;margin-bottom:1rem">评分和评论前需要设置一个昵称（仅存在本地浏览器）</p>
-<input type="text" id="username-input" placeholder="输入昵称..." maxlength="20">
-<button class="btn" id="save-username">确定</button>
-</div>
-</div>
+
 <footer>
-<p>NCS Ratings - 社区驱动的 NCS 歌曲评分平台</p>
-<p>本站与 NoCopyrightSounds 官方无关，仅用于社区评分讨论 | 数据为公开信息</p>
+  <p>NCS Ratings © 2026 · 一个基于 Wilson Score 的音乐评分社区 · 数据存储于本地浏览器</p>
+  <p style="margin-top:.4rem">所有音乐版权归原作者所有 · 仅用于学习与交流</p>
 </footer>
-<script src="songs-data.js"></script>
-<script src="app.js"></script>
+
+<!-- 鉴权弹窗 -->
+<div class="modal-overlay" id="authModal">
+  <div class="modal">
+    <button class="modal-close" data-close="authModal">×</button>
+    <div class="modal-body">
+      <div class="modal-title" id="authTitle">登录</div>
+      <div class="form-group">
+        <label>用户名</label>
+        <input type="text" id="authUser" placeholder="输入用户名">
+      </div>
+      <div class="form-group">
+        <label>密码</label>
+        <input type="password" id="authPass" placeholder="输入密码">
+      </div>
+      <div class="auth-error" id="authError"></div>
+      <button class="btn-primary btn-block" id="authSubmit" style="margin-top:.5rem">登录</button>
+      <div class="auth-switch" id="authSwitch">还没有账号？<a>立即注册</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- 歌曲详情弹窗 -->
+<div class="modal-overlay" id="songModal">
+  <div class="modal lg">
+    <button class="modal-close" data-close="songModal">×</button>
+    <div class="modal-body" id="songModalBody"></div>
+  </div>
+</div>
+
+<!-- 设置弹窗 -->
+<div class="modal-overlay" id="settingsModal">
+  <div class="modal">
+    <button class="modal-close" data-close="settingsModal">×</button>
+    <div class="modal-body" id="settingsBody"></div>
+  </div>
+</div>
+
+<!-- 后台弹窗 -->
+<div class="modal-overlay" id="adminModal">
+  <div class="modal xl">
+    <button class="modal-close" data-close="adminModal">×</button>
+    <div class="modal-body" id="adminBody"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===================== 歌曲数据 ===================== */
+var SONGS=[
+{id:"s001",title:"Fade",artist:"Alan Walker",genre:"EDM",year:2014,popular:100},
+{id:"s002",title:"On & On (feat. Daniel Levi)",artist:"Cartoon, Daniel Levi, Jéja",genre:"Drum & Bass",year:2015,popular:99},
+{id:"s003",title:"Spectre",artist:"Alan Walker",genre:"EDM",year:2015,popular:98},
+{id:"s004",title:"Invincible",artist:"DEAF KEV",genre:"Glitch Hop",year:2015,popular:97},
+{id:"s005",title:"Sky High",artist:"Elektronomia",genre:"Electro",year:2015,popular:96},
+{id:"s006",title:"Symbolism",artist:"Electro-Light",genre:"Electro",year:2015,popular:95},
+{id:"s007",title:"Why We Lose (feat. Coleman Trapp)",artist:"Cartoon, Coleman Trapp",genre:"Electronic",year:2015,popular:94},
+{id:"s008",title:"Mortals (feat. Laura Brehm)",artist:"Warriyo, Laura Brehm",genre:"Trap",year:2015,popular:93},
+{id:"s009",title:"Hope",artist:"Tobu",genre:"House",year:2014,popular:92},
+{id:"s010",title:"Shine",artist:"Spektrem",genre:"Progressive House",year:2014,popular:91},
+{id:"s011",title:"Force",artist:"Alan Walker",genre:"EDM",year:2015,popular:90},
+{id:"s012",title:"Cradles",artist:"Sub Urban",genre:"Alternative",year:2019,popular:89},
+{id:"s013",title:"Fearless Pt. II (feat. Chris Linton)",artist:"Lost Sky, Chris Linton",genre:"Trap",year:2017,popular:88},
+{id:"s014",title:"Invisible",artist:"Julius Dreisig, Zeus X Crona",genre:"Trap",year:2019,popular:87},
+{id:"s015",title:"Feel Good",artist:"Syn Cole",genre:"House",year:2014,popular:86},
+{id:"s016",title:"Superhero (feat. Chris Linton)",artist:"Unknown Brain, Chris Linton",genre:"Trap",year:2016,popular:85},
+{id:"s017",title:"We Are",artist:"Jo Cohen, Sex Whales",genre:"Trap",year:2016,popular:84},
+{id:"s018",title:"Sunburst",artist:"Tobu, Itro",genre:"House",year:2014,popular:83},
+{id:"s019",title:"Ark",artist:"Ship Wrek, Zookeepers",genre:"Trap",year:2016,popular:82},
+{id:"s020",title:"Hellcat",artist:"Desmeon",genre:"Trap",year:2016,popular:81},
+{id:"s021",title:"Light It Up (feat. Jex)",artist:"Robin Hustin, TobiMorrow, Jex",genre:"EDM",year:2016,popular:80},
+{id:"s022",title:"Candyland",artist:"Tobu",genre:"House",year:2015,popular:79},
+{id:"s023",title:"Firefly",artist:"Jim Yosef",genre:"Progressive House",year:2016,popular:78},
+{id:"s024",title:"Energy",artist:"Elektronomia",genre:"House",year:2016,popular:77},
+{id:"s025",title:"Dreams Pt. II (feat. Sara Skinner)",artist:"Lost Sky, Sara Skinner",genre:"Melodic Dubstep",year:2018,popular:76},
+{id:"s026",title:"Make Me Move (feat. Karra)",artist:"Culture Code, Karra",genre:"Trap",year:2016,popular:75},
+{id:"s027",title:"Turn It Up",artist:"Anikdote",genre:"Trap",year:2016,popular:74},
+{id:"s028",title:"MATAFAKA (feat. Marvin Divine)",artist:"Unknown Brain, Marvin Divine",genre:"Trap",year:2017,popular:73},
+{id:"s029",title:"High",artist:"JPB",genre:"Future House",year:2016,popular:72},
+{id:"s030",title:"Link",artist:"Jim Yosef",genre:"Progressive House",year:2016,popular:71},
+{id:"s031",title:"Let's Go!",artist:"Lensko",genre:"Electro",year:2015,popular:70},
+{id:"s032",title:"Adventure",artist:"JJD",genre:"Indie",year:2016,popular:69},
+{id:"s033",title:"Why Do I? (feat. Bri Tolani)",artist:"Unknown Brain, Bri Tolani",genre:"Trap",year:2017,popular:68},
+{id:"s034",title:"Limitless",artist:"Elektronomia",genre:"Electro",year:2017,popular:67},
+{id:"s035",title:"Forever (feat. Brenton Mattheus)",artist:"Vanze, Brenton Mattheus",genre:"Future House",year:2016,popular:66},
+{id:"s036",title:"C U Again (feat. Mikk Mäe)",artist:"Cartoon, Futuristik, Mikk Mäe",genre:"Electronic",year:2016,popular:65},
+{id:"s037",title:"Life",artist:"Tobu",genre:"House",year:2015,popular:64},
+{id:"s038",title:"Everything",artist:"Diamond Eyes",genre:"Dubstep",year:2017,popular:63},
+{id:"s039",title:"Tropic Love",artist:"Diviners, Contacreast",genre:"House",year:2015,popular:62},
+{id:"s040",title:"Fall To Light",artist:"Laszlo",genre:"Progressive House",year:2015,popular:61},
+{id:"s041",title:"Pill (feat. Emma Sameth)",artist:"Heuse, Zeus X Crona, Emma Sameth",genre:"Trap",year:2018,popular:60},
+{id:"s042",title:"Puzzle",artist:"RetroVision",genre:"House",year:2017,popular:59},
+{id:"s043",title:"Earth",artist:"K-391",genre:"House",year:2016,popular:58},
+{id:"s044",title:"Love U",artist:"Razihel",genre:"Dubstep",year:2015,popular:57},
+{id:"s045",title:"Stronger",artist:"Prismo",genre:"Dubstep",year:2015,popular:56},
+{id:"s046",title:"Where We Started (feat. Jex)",artist:"Lost Sky, Jex",genre:"Melodic Dubstep",year:2018,popular:55},
+{id:"s047",title:"Defeat The Night (feat. Ashley Apollodor)",artist:"JPB, Ashley Apollodor",genre:"Trap",year:2016,popular:54},
+{id:"s048",title:"You",artist:"Axol, Alex Skrindo",genre:"House",year:2016,popular:53},
+{id:"s049",title:"H.A.Y",artist:"Clarx",genre:"Trap",year:2017,popular:52},
+{id:"s050",title:"Fearless",artist:"Lost Sky",genre:"Melodic Dubstep",year:2017,popular:51},
+{id:"s051",title:"Nekozilla",artist:"Different Heaven",genre:"Hardstyle",year:2016,popular:50},
+{id:"s052",title:"Royalty",artist:"Egzod, Maestro Chives, Neoni",genre:"Trap",year:2020,popular:49},
+{id:"s053",title:"Shootin Stars",artist:"Aero Chord, DDark",genre:"Trap",year:2017,popular:48},
+{id:"s054",title:"Control",artist:"Unknown Brain, Jex, Rival",genre:"Trap",year:2018,popular:47},
+{id:"s055",title:"Savannah (feat. Philly K)",artist:"Diviners, Philly K",genre:"Indie",year:2018,popular:46},
+{id:"s056",title:"Cloud 9",artist:"Itro, Tobu",genre:"House",year:2014,popular:45},
+{id:"s057",title:"Infectious",artist:"Tobu",genre:"House",year:2014,popular:44},
+{id:"s058",title:"My Heart",artist:"EH!DE, Different Heaven",genre:"Dubstep",year:2014,popular:43},
+{id:"s059",title:"So Funky",artist:"NIVIRO",genre:"House",year:2018,popular:42},
+{id:"s060",title:"Perfect 10 (feat. Heather Sommer)",artist:"Unknown Brain, Heather Sommer",genre:"Trap",year:2018,popular:41},
+{id:"s061",title:"Biscuit",artist:"Raven & Kreyn",genre:"House",year:2018,popular:40},
+{id:"s062",title:"With You",artist:"Marin Hoxha",genre:"Chill",year:2018,popular:39},
+{id:"s063",title:"Ber Zer Ker",artist:"WATEVA",genre:"Bass",year:2018,popular:38},
+{id:"s064",title:"Cake",artist:"RetroVision",genre:"House",year:2018,popular:37},
+{id:"s065",title:"Venus (feat. Mylk)",artist:"Michael White, MYLK",genre:"House",year:2018,popular:36},
+{id:"s066",title:"Summersong 2018",artist:"Elektronomia",genre:"House",year:2018,popular:35},
+{id:"s067",title:"Dreamers",artist:"Glude",genre:"Trap",year:2018,popular:34},
+{id:"s068",title:"The Apocalypse",artist:"NIVIRO",genre:"Hardstyle",year:2018,popular:33},
+{id:"s069",title:"Ghost (feat. Eli Raain)",artist:"Cadmium, Eli Raain",genre:"Chill",year:2018,popular:32},
+{id:"s070",title:"Donuts",artist:"2SCOOPS",genre:"EDM",year:2018,popular:31},
+{id:"s071",title:"Universe",artist:"Egzod, Tanjent",genre:"Trap",year:2018,popular:30},
+{id:"s072",title:"Dino",artist:"Mountkid",genre:"Trap",year:2018,popular:29},
+{id:"s073",title:"Ignoring My Heart",artist:"T-Mass",genre:"Trap",year:2018,popular:28},
+{id:"s074",title:"The Light",artist:"Phantom Sage",genre:"Drum & Bass",year:2017,popular:27},
+{id:"s075",title:"Away (feat. Byndy)",artist:"Phantom Sage, Byndy",genre:"Dubstep",year:2017,popular:26},
+{id:"s076",title:"Everlasting",artist:"Jim Yosef, Ephixa",genre:"EDM",year:2017,popular:25},
+{id:"s077",title:"Vertigo",artist:"Rob Gasser, Laura Brehm",genre:"Drumstep",year:2017,popular:24},
+{id:"s078",title:"Savage",artist:"Paul Flint",genre:"Dubstep",year:2017,popular:23},
+{id:"s079",title:"Feel Like Horrible",artist:"Different Heaven, Sian Area",genre:"Drum & Bass",year:2017,popular:22},
+{id:"s080",title:"Beside You (feat. Soundr)",artist:"Rameses B, Soundr",genre:"Drum & Bass",year:2017,popular:21},
+{id:"s081",title:"Start That Fire",artist:"ÉWN, Whogaux",genre:"Trap",year:2017,popular:20},
+{id:"s082",title:"Polaris",artist:"Blazars",genre:"EDM",year:2017,popular:19},
+{id:"s083",title:"Whole",artist:"Chime, Adam Tell",genre:"Dubstep",year:2017,popular:18},
+{id:"s084",title:"Wait For You (feat. Anna Yvette)",artist:"Electro-Light, Jordan Kelvin James, Anna Yvette",genre:"Drum & Bass",year:2017,popular:17},
+{id:"s085",title:"Heroes",artist:"RetroVision",genre:"House",year:2017,popular:16},
+{id:"s086",title:"Feels",artist:"ÉWN",genre:"Trap",year:2017,popular:15},
+{id:"s087",title:"Pain (feat. Mia Vaile)",artist:"Ship Wrek, Mia Vaile",genre:"Trap",year:2017,popular:14},
+{id:"s088",title:"Donuts",artist:"Jensation",genre:"House",year:2017,popular:13},
+{id:"s089",title:"Remember (feat. The Tech Thieves)",artist:"Axol, Levianth, The Tech Thieves",genre:"Trap",year:2017,popular:12},
+{id:"s090",title:"Blueshift",artist:"Catas, Kasger",genre:"Drum & Bass",year:2017,popular:11},
+{id:"s091",title:"The Wizard",artist:"SKYLINK",genre:"Melodic Dubstep",year:2017,popular:10},
+{id:"s092",title:"Heroes Tonight (feat. Johnning)",artist:"Janji, Johnning",genre:"EDM",year:2015,popular:9},
+{id:"s093",title:"Blank",artist:"Disfigure",genre:"Melodic Dubstep",year:2015,popular:8},
+{id:"s094",title:"Escape With Me (feat. Charlotte Haining)",artist:"Charlotte Haining, Halcyon",genre:"Melodic Dubstep",year:2016,popular:7},
+{id:"s095",title:"A New Light",artist:"Valcos",genre:"EDM",year:2016,popular:6},
+{id:"s096",title:"Imma Killa!",artist:"Anikdote",genre:"Trap",year:2016,popular:5},
+{id:"s097",title:"Migraine (feat. Anna Yvette)",artist:"Ellis, Anna Yvette",genre:"Future House",year:2016,popular:4},
+{id:"s098",title:"ILY",artist:"Axol",genre:"EDM",year:2016,popular:3},
+{id:"s099",title:"Canary",artist:"Jim Yosef",genre:"Future House",year:2016,popular:2},
+{id:"s100",title:"Masked Raver",artist:"Vexento",genre:"House",year:2016,popular:1},
+{id:"s101",title:"Happy Accidents",artist:"Inukshuk",genre:"Hardstyle",year:2015,popular:0},
+{id:"s102",title:"Let Me See You",artist:"Naima",genre:"Trap",year:2015,popular:0},
+{id:"s103",title:"Levitate",artist:"JPB",genre:"Future House",year:2015,popular:0},
+{id:"s104",title:"Change Your Ways (feat. Charlotte Haining)",artist:"High Maintenance, Charlotte Haining",genre:"Trap",year:2015,popular:0},
+{id:"s105",title:"Losing Sleep (feat. Tara Louise)",artist:"Disfigure, Tara Louise",genre:"Chill",year:2017,popular:0},
+{id:"s106",title:"Heaven",artist:"RIVERO, Anna Yvette",genre:"Trap",year:2018,popular:0},
+{id:"s107",title:"Somebody",artist:"Sekai",genre:"Melodic Dubstep",year:2018,popular:0},
+{id:"s108",title:"Paper Crowns (feat. Leo The Kind)",artist:"Egzod, Leo The Kind",genre:"Electronic",year:2018,popular:0},
+{id:"s109",title:"In The Air",artist:"Raven & Kreyn",genre:"House",year:2018,popular:0},
+{id:"s110",title:"Together",artist:"3rd Prototype",genre:"Electronic",year:2017,popular:0},
+{id:"s111",title:"Light Up The Sky (feat. Soundr)",artist:"Axtasia, Soundr",genre:"Dubstep",year:2017,popular:0},
+{id:"s112",title:"Roots",artist:"Tobu",genre:"House",year:2014,popular:0},
+{id:"s113",title:"Melrose At Midnight",artist:"Light Years Away",genre:"Melodic Dubstep",year:2016,popular:0},
+{id:"s114",title:"Hope (Original Mix)",artist:"Tobu",genre:"House",year:2014,popular:0},
+{id:"s115",title:"Origin",artist:"Electric Joy Ride",genre:"Electro",year:2014,popular:0}
+];
+
+var AVATAR_EMOJIS=['🎵','🎧','🎸','🎹','🥁','🎤','🎺','🎻','🎼','🪕','🎷','🪘'];
+
+/* ===================== 存储 ===================== */
+var SK={
+  USERS:'ncs_users_v2',
+  SESSION:'ncs_session_v2',
+  RATINGS:'ncs_ratings_v2',
+  COMMENTS:'ncs_comments_v2'
+};
+function load(key,def){
+  try{var v=localStorage.getItem(key);return v?JSON.parse(v):def;}catch(e){return def;}
+}
+function save(key,val){try{localStorage.setItem(key,JSON.stringify(val));}catch(e){}}
+function getUsers(){return load(SK.USERS,{});}
+function getSession(){return load(SK.SESSION,null);}
+function setSession(u){save(SK.SESSION,u);}
+function getRatings(){return load(SK.RATINGS,{});}
+function getComments(){return load(SK.COMMENTS,{});}
+
+/* ===================== Wilson Score ===================== */
+function wilsonScore(likes,total){
+  if(total===0) return 0.5;
+  var z=1.96;
+  var p=likes/total;
+  var n=total;
+  var num=p+z*z/(2*n)-z*Math.sqrt(p*(1-p)/n+z*z/(4*n*n));
+  var den=1+z*z/n;
+  return num/den;
+}
+function songStats(songId){
+  var r=getRatings()[songId]||[];
+  var likes=0,dislikes=0;
+  for(var i=0;i<r.length;i++){
+    if(r[i].rating==='like')likes++;
+    else dislikes++;
+  }
+  var total=likes+dislikes;
+  var ws=wilsonScore(likes,total);
+  return{likes:likes,dislikes:dislikes,total:total,wilson:ws};
+}
+
+/* ===================== 封面生成 ===================== */
+function hashString(s){
+  var h=0;
+  for(var i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h=h&h;}
+  return Math.abs(h);
+}
+function coverStyle(title){
+  var h=hashString(title);
+  var hue1=h%360;
+  var hue2=(hue1+40)%360;
+  var hue3=(hue1+90)%360;
+  return 'linear-gradient(135deg,hsl('+hue1+',75%,55%),hsl('+hue2+',70%,45%),hsl('+hue3+',70%,50%))';
+}
+function firstLetter(title){
+  var t=title.replace(/^[^A-Za-z0-9]+/,'');
+  return (t.charAt(0)||title.charAt(0)||'?').toUpperCase();
+}
+
+/* ===================== 鉴权 ===================== */
+var authMode='login';
+function openAuth(mode){
+  authMode=mode;
+  document.getElementById('authTitle').textContent=mode==='login'?'登录':'注册';
+  document.getElementById('authSubmit').textContent=mode==='login'?'登录':'注册';
+  document.getElementById('authSwitch').innerHTML=mode==='login'?'还没有账号？<a>立即注册</a>':'已有账号？<a>去登录</a>';
+  document.getElementById('authError').textContent='';
+  document.getElementById('authUser').value='';
+  document.getElementById('authPass').value='';
+  openModal('authModal');
+}
+function doAuth(){
+  var u=document.getElementById('authUser').value.trim();
+  var p=document.getElementById('authPass').value;
+  var err=document.getElementById('authError');
+  if(!u||!p){err.textContent='请填写用户名和密码';return;}
+  if(u.length<2){err.textContent='用户名至少2个字符';return;}
+  var users=getUsers();
+  if(authMode==='register'){
+    if(users[u]){err.textContent='用户名已被占用';return;}
+    users[u]={password:p,avatar:AVATAR_EMOJIS[0],phone:'',registered:Date.now()};
+    save(SK.USERS,users);
+    setSession(u);
+    closeModal('authModal');
+    toast('注册成功，欢迎加入 NCS Ratings！','success');
+    renderHeader();
+    return;
+  }
+  if(!users[u]||users[u].password!==p){err.textContent='用户名或密码错误';return;}
+  setSession(u);
+  closeModal('authModal');
+  toast('登录成功','success');
+  renderHeader();
+}
+function logout(){
+  setSession(null);
+  closeModal('settingsModal');
+  closeModal('adminModal');
+  toast('已退出登录','success');
+  renderHeader();
+  renderSongs();
+}
+
+/* ===================== 头部渲染 ===================== */
+function renderHeader(){
+  var area=document.getElementById('authArea');
+  var s=getSession();
+  if(s){
+    var users=getUsers();
+    var u=users[s];
+    var avatarHtml=u.avatar && u.avatar.indexOf('data:')===0
+      ?'<img src="'+u.avatar+'" alt="">'
+      :u.avatar||'🎵';
+    area.innerHTML='<div class="user-menu">'+
+      '<button class="user-btn" id="userBtn">'+
+        '<div class="user-avatar">'+avatarHtml+'</div>'+
+        '<span class="user-name">'+escapeHtml(s)+'</span>'+
+        '<span style="font-size:.7rem;color:var(--text-dim)">▾</span>'+
+      '</button>'+
+      '<div class="dropdown" id="userDrop">'+
+        '<button class="dropdown-item" data-act="settings"><span class="di-ico">⚙️</span>个人设置</button>'+
+        '<button class="dropdown-item" data-act="admin"><span class="di-ico">📊</span>后台管理</button>'+
+        '<div class="dropdown-divider"></div>'+
+        '<button class="dropdown-item" data-act="logout"><span class="di-ico">🚪</span>退出登录</button>'+
+      '</div>'+
+    '</div>';
+    var btn=document.getElementById('userBtn');
+    var drop=document.getElementById('userDrop');
+    btn.onclick=function(e){e.stopPropagation();drop.classList.toggle('open');};
+    document.addEventListener('click',function c(){
+      drop.classList.remove('open');
+    });
+    var items=drop.querySelectorAll('.dropdown-item');
+    for(var i=0;i<items.length;i++){
+      (function(item){
+        item.onclick=function(){
+          drop.classList.remove('open');
+          var act=item.getAttribute('data-act');
+          if(act==='settings')openSettings();
+          else if(act==='admin')openAdmin();
+          else if(act==='logout')logout();
+        };
+      })(items[i]);
+    }
+  }else{
+    area.innerHTML='<button class="btn-primary" onclick="openAuth(\'login\')">登录 / 注册</button>';
+  }
+  renderHeroStats();
+}
+
+function renderHeroStats(){
+  var ratings=getRatings();
+  var comments=getComments();
+  var users=getUsers();
+  var totalR=0,totalC=0;
+  for(var k in ratings)totalR+=ratings[k].length;
+  for(var c in comments)totalC+=comments[c].length;
+  var userCount=0;for(var u in users)userCount++;
+  document.getElementById('heroStats').innerHTML=
+    '<div class="stat-mini"><span class="num">'+SONGS.length+'</span><span class="lbl">歌曲</span></div>'+
+    '<div class="stat-mini"><span class="num">'+totalR+'</span><span class="lbl">评分</span></div>'+
+    '<div class="stat-mini"><span class="num">'+totalC+'</span><span class="lbl">评论</span></div>'+
+    '<div class="stat-mini"><span class="num">'+userCount+'</span><span class="lbl">用户</span></div>';
+}
+
+/* ===================== 歌曲渲染 ===================== */
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+
+function renderSongs(){
+  var q=document.getElementById('searchInput').value.trim().toLowerCase();
+  var sort=document.getElementById('sortSelect').value;
+  var list=SONGS.filter(function(s){
+    if(!q)return true;
+    return s.title.toLowerCase().indexOf(q)>=0||s.artist.toLowerCase().indexOf(q)>=0;
+  });
+  if(sort==='popular'){
+    list.sort(function(a,b){return b.popular-a.popular;});
+  }else if(sort==='title'){
+    list.sort(function(a,b){return a.title.localeCompare(b.title);});
+  }else if(sort==='wilson'){
+    list.sort(function(a,b){
+      var sa=songStats(a.id),sb=songStats(b.id);
+      return sb.wilson-sa.wilson;
+    });
+  }
+  var grid=document.getElementById('songGrid');
+  if(list.length===0){
+    grid.innerHTML='<div class="empty-state" style="grid-column:1/-1;padding:3rem">没有找到匹配的歌曲</div>';
+    return;
+  }
+  var html='';
+  for(var i=0;i<list.length;i++){
+    var s=list[i];
+    var st=songStats(s.id);
+    var pct=Math.round(st.wilson*100);
+    var cs=coverStyle(s.title);
+    var fl=firstLetter(s.title);
+    html+='<div class="song-card" onclick="openSongDetail(\''+s.id+'\')" style="animation-delay:'+(i%20*0.03)+'s">'+
+      '<div class="cover" style="background:'+cs+'">'+
+        '<div class="cover-bg"></div>'+
+        '<div class="cover-glow"></div>'+
+        '<div class="cover-letter">'+fl+'</div>'+
+      '</div>'+
+      '<div class="card-body">'+
+        '<div class="card-title">'+escapeHtml(s.title)+'</div>'+
+        '<div class="card-artist">'+escapeHtml(s.artist)+'</div>'+
+        '<div class="card-tags">'+
+          '<span class="tag">'+escapeHtml(s.genre)+'</span>'+
+          '<span class="tag year">'+s.year+'</span>'+
+        '</div>'+
+        '<div class="rating-row">'+
+          '<span class="likes">👍 '+st.likes+'</span>'+
+          '<span class="dislikes">👎 '+st.dislikes+'</span>'+
+          '<span class="score">'+pct+'%</span>'+
+        '</div>'+
+        '<div class="progress"><div class="progress-bar" style="width:'+pct+'%"></div></div>'+
+      '</div>'+
+    '</div>';
+  }
+  grid.innerHTML=html;
+}
+
+/* ===================== 歌曲详情 ===================== */
+function openSongDetail(songId){
+  var s=SONGS.filter(function(x){return x.id===songId;})[0];
+  if(!s)return;
+  var st=songStats(songId);
+  var pct=Math.round(st.wilson*100);
+  var cs=coverStyle(s.title);
+  var fl=firstLetter(s.title);
+  var session=getSession();
+  var userRating=null;
+  if(session){
+    var r=getRatings()[songId]||[];
+    for(var i=0;i<r.length;i++){
+      if(r[i].user===session){userRating=r[i].rating;break;}
+    }
+  }
+  var comments=getComments()[songId]||[];
+  var commentHtml='';
+  if(comments.length===0){
+    commentHtml='<div class="empty-state">还没有评论，快来抢沙发吧！</div>';
+  }else{
+    var users=getUsers();
+    for(var j=comments.length-1;j>=0;j--){
+      var c=comments[j];
+      var cu=users[c.user]||{};
+      var av=cu.avatar&&cu.avatar.indexOf('data:')===0
+        ?'<img src="'+cu.avatar+'" alt="">'
+        :(cu.avatar||'🎵');
+      var delBtn=c.user===session?'<button class="c-del" onclick="deleteComment(\''+songId+'\',\''+c.id+'\')">删除</button>':'';
+      commentHtml+='<div class="comment-item">'+
+        '<div class="c-avatar">'+av+'</div>'+
+        '<div class="c-body">'+
+          '<div class="c-head">'+
+            '<span class="c-user">'+escapeHtml(c.user)+'</span>'+
+            '<span class="c-date">'+formatDate(c.date)+(delBtn?' · ':'')+delBtn+'</span>'+
+          '</div>'+
+          '<div class="c-text">'+escapeHtml(c.content)+'</div>'+
+        '</div>'+
+      '</div>';
+    }
+  }
+  var rateSection='';
+  if(session){
+    rateSection='<div class="rate-section">'+
+      '<div style="font-size:.85rem;color:var(--text-dim);margin-bottom:.4rem">为这首歌评分</div>'+
+      '<div class="rate-buttons">'+
+        '<button class="rate-btn like'+(userRating==='like'?' active':'')+'" onclick="rateSong(\''+songId+'\',\'like\')">👍 好评</button>'+
+        '<button class="rate-btn dislike'+(userRating==='dislike'?' active':'')+'" onclick="rateSong(\''+songId+'\',\'dislike\')">👎 差评</button>'+
+      '</div>'+
+      '<div class="detail-progress">'+
+        '<div class="pl"><span>好评率 (Wilson Score)</span><span>'+pct+'%</span></div>'+
+        '<div class="progress"><div class="progress-bar" style="width:'+pct+'%"></div></div>'+
+      '</div>'+
+    '</div>';
+  }else{
+    rateSection='<div class="rate-section" style="text-align:center">'+
+      '<div style="font-size:.85rem;color:var(--text-dim);margin-bottom:.6rem">登录后即可评分和评论</div>'+
+      '<button class="btn-primary" onclick="closeModal(\'songModal\');openAuth(\'login\');">去登录</button>'+
+    '</div>';
+  }
+  var commentSection='';
+  if(session){
+    commentSection='<div class="comment-form">'+
+      '<input type="text" id="commentInput" placeholder="写下你的听感..." maxlength="200">'+
+      '<button class="btn-primary" onclick="addComment(\''+songId+'\')">发送</button>'+
+    '</div>';
+  }
+  document.getElementById('songModalBody').innerHTML=
+    '<div class="detail-head">'+
+      '<div class="detail-cover" style="background:'+cs+'">'+
+        '<div class="cover-bg"></div>'+
+        '<div class="cover-glow"></div>'+
+        '<div class="cover-letter">'+fl+'</div>'+
+      '</div>'+
+      '<div class="detail-info">'+
+        '<h2>'+escapeHtml(s.title)+'</h2>'+
+        '<div class="artist">'+escapeHtml(s.artist)+'</div>'+
+        '<div class="tags"><span class="tag">'+escapeHtml(s.genre)+'</span><span class="tag year">'+s.year+'</span></div>'+
+        '<div class="detail-stats">'+
+          '<div class="detail-stat like"><div class="v">'+st.likes+'</div><div class="l">好评</div></div>'+
+          '<div class="detail-stat dislike"><div class="v">'+st.dislikes+'</div><div class="l">差评</div></div>'+
+          '<div class="detail-stat score"><div class="v">'+pct+'%</div><div class="l">好评率</div></div>'+
+        '</div>'+
+      '</div>'+
+    '</div>'+
+    rateSection+
+    '<div class="comments-section">'+
+      '<h3>评论 ('+comments.length+')</h3>'+
+      commentSection+
+      commentHtml+
+    '</div>';
+  openModal('songModal');
+}
+
+function rateSong(songId,rating){
+  var session=getSession();
+  if(!session){openAuth('login');return;}
+  var r=getRatings();
+  if(!r[songId])r[songId]=[];
+  var existing=-1;
+  for(var i=0;i<r[songId].length;i++){
+    if(r[songId][i].user===session){existing=i;break;}
+  }
+  if(existing>=0){
+    if(r[songId][existing].rating===rating){
+      r[songId].splice(existing,1);
+      toast('已取消评分','success');
+    }else{
+      r[songId][existing].rating=rating;
+      r[songId][existing].date=Date.now();
+      toast('评分已更新','success');
+    }
+  }else{
+    r[songId].push({user:session,rating:rating,date:Date.now()});
+    toast('评分成功','success');
+  }
+  save(SK.RATINGS,r);
+  openSongDetail(songId);
+  renderSongs();
+  renderHeroStats();
+}
+
+function addComment(songId){
+  var session=getSession();
+  if(!session){openAuth('login');return;}
+  var input=document.getElementById('commentInput');
+  var content=input.value.trim();
+  if(!content){toast('请输入评论内容','error');return;}
+  var c=getComments();
+  if(!c[songId])c[songId]=[];
+  c[songId].push({id:'c'+Date.now()+Math.random().toString(36).slice(2,6),user:session,content:content,date:Date.now()});
+  save(SK.COMMENTS,c);
+  toast('评论成功','success');
+  openSongDetail(songId);
+  renderHeroStats();
+}
+function deleteComment(songId,commentId){
+  var session=getSession();
+  if(!session)return;
+  var c=getComments();
+  if(!c[songId])return;
+  c[songId]=c[songId].filter(function(x){return !(x.id===commentId&&x.user===session);});
+  save(SK.COMMENTS,c);
+  toast('评论已删除','success');
+  openSongDetail(songId);
+  renderHeroStats();
+}
+
+function formatDate(ts){
+  var d=new Date(ts);
+  function pad(n){return n<10?'0'+n:n;}
+  return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+' '+pad(d.getHours())+':'+pad(d.getMinutes());
+}
+
+/* ===================== 个人设置 ===================== */
+function openSettings(){
+  var session=getSession();
+  if(!session)return;
+  var users=getUsers();
+  var u=users[session];
+  var avatarHtml=u.avatar&&u.avatar.indexOf('data:')===0
+    ?'<img src="'+u.avatar+'" alt="">'
+    :(u.avatar||'🎵');
+  var phoneHtml=u.phone
+    ?'<div class="phone-display"><span>已绑定 <span class="bound">'+maskPhone(u.phone)+'</span></span><button class="dropdown-item" style="padding:.3rem .6rem" onclick="bindPhone()">修改</button></div>'
+    :'<div class="phone-display"><span class="unbind">未绑定手机号</span><button class="btn-primary" style="padding:.4rem .9rem;font-size:.8rem" onclick="bindPhone()">绑定</button></div>';
+  var avHtml='';
+  for(var i=0;i<AVATAR_EMOJIS.length;i++){
+    avHtml+='<button class="avatar-opt'+(u.avatar===AVATAR_EMOJIS[i]?' active':'')+'" onclick="setAvatar(\''+AVATAR_EMOJIS[i].replace(/'/g,"\\'")+'\')">'+AVATAR_EMOJIS[i]+'</button>';
+  }
+  document.getElementById('settingsBody').innerHTML=
+    '<div class="modal-title">个人设置</div>'+
+    '<div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.25rem">'+
+      '<div class="current-avatar">'+avatarHtml+'</div>'+
+      '<div><div style="font-weight:700;font-size:1.1rem">'+escapeHtml(session)+'</div>'+
+      '<div style="font-size:.8rem;color:var(--text-dim)">注册于 '+formatDate(u.registered||Date.now())+'</div></div>'+
+    '</div>'+
+    '<div class="form-group"><label>选择头像</label>'+
+      '<div class="avatar-grid">'+avHtml+'</div>'+
+    '</div>'+
+    '<div class="form-group"><label>或上传自定义头像</label>'+
+      '<div class="upload-row">'+
+        '<input type="file" id="avatarFile" accept="image/*">'+
+        '<button class="btn-primary" style="padding:.5rem 1rem;font-size:.8rem" onclick="uploadAvatar()">上传</button>'+
+      '</div>'+
+    '</div>'+
+    '<div class="form-group"><label>修改用户名</label>'+
+      '<div class="form-row">'+
+        '<input type="text" id="newUsername" placeholder="新用户名" value="'+escapeHtml(session)+'">'+
+        '<button class="btn-primary" style="padding:.6rem 1.2rem;font-size:.85rem;white-space:nowrap" onclick="changeUsername()">保存</button>'+
+      '</div>'+
+    '</div>'+
+    '<div class="form-group"><label>手机号</label>'+phoneHtml+'</div>';
+  openModal('settingsModal');
+}
+function setAvatar(emoji){
+  var session=getSession();if(!session)return;
+  var users=getUsers();
+  users[session].avatar=emoji;
+  save(SK.USERS,users);
+  toast('头像已更新','success');
+  openSettings();
+  renderHeader();
+}
+function uploadAvatar(){
+  var f=document.getElementById('avatarFile').files[0];
+  if(!f){toast('请选择图片','error');return;}
+  if(f.size>500000){toast('图片不能超过500KB','error');return;}
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var session=getSession();
+    var users=getUsers();
+    users[session].avatar=e.target.result;
+    save(SK.USERS,users);
+    toast('头像上传成功','success');
+    openSettings();
+    renderHeader();
+  };
+  reader.readAsDataURL(f);
+}
+function changeUsername(){
+  var session=getSession();if(!session)return;
+  var newName=document.getElementById('newUsername').value.trim();
+  if(newName.length<2){toast('用户名至少2个字符','error');return;}
+  if(newName===session){toast('用户名未改变','error');return;}
+  var users=getUsers();
+  if(users[newName]){toast('用户名已被占用','error');return;}
+  var oldName=session;
+  users[newName]=users[oldName];
+  delete users[oldName];
+  save(SK.USERS,users);
+  // 更新评分和评论中的用户名
+  var r=getRatings();
+  for(var k in r){for(var i=0;i<r[k].length;i++){if(r[k][i].user===oldName)r[k][i].user=newName;}}
+  save(SK.RATINGS,r);
+  var c=getComments();
+  for(var ck in c){for(var j=0;j<c[ck].length;j++){if(c[ck][j].user===oldName)c[ck][j].user=newName;}}
+  save(SK.COMMENTS,c);
+  setSession(newName);
+  toast('用户名修改成功','success');
+  openSettings();
+  renderHeader();
+  renderSongs();
+}
+function maskPhone(p){
+  if(!p||p.length<7)return p;
+  return p.slice(0,3)+'****'+p.slice(-4);
+}
+function bindPhone(){
+  var phone=prompt('请输入手机号：');
+  if(phone===null)return;
+  phone=phone.trim();
+  if(!/^1\d{10}$/.test(phone)){toast('请输入有效的11位手机号','error');return;}
+  var session=getSession();
+  var users=getUsers();
+  users[session].phone=phone;
+  save(SK.USERS,users);
+  toast('手机号绑定成功','success');
+  openSettings();
+}
+
+/* ===================== 后台管理 ===================== */
+function openAdmin(){
+  var session=getSession();
+  if(!session){openAuth('login');return;}
+  document.getElementById('adminBody').innerHTML=
+    '<div class="modal-title">后台管理系统</div>'+
+    '<div class="admin-tabs">'+
+      '<button class="admin-tab active" data-panel="overview">📊 概览</button>'+
+      '<button class="admin-tab" data-panel="charts">📈 图表</button>'+
+      '<button class="admin-tab" data-panel="songs">🎵 歌曲管理</button>'+
+      '<button class="admin-tab" data-panel="users">👥 用户列表</button>'+
+    '</div>'+
+    '<div id="adminContent"></div>';
+  openModal('adminModal');
+  bindAdminTabs();
+  renderAdminPanel('overview');
+}
+function bindAdminTabs(){
+  var tabs=document.querySelectorAll('.admin-tab');
+  for(var i=0;i<tabs.length;i++){
+    (function(t){
+      t.onclick=function(){
+        document.querySelectorAll('.admin-tab').forEach(function(x){x.classList.remove('active');});
+        t.classList.add('active');
+        renderAdminPanel(t.getAttribute('data-panel'));
+      };
+    })(tabs[i]);
+  }
+}
+function renderAdminPanel(name){
+  var c=document.getElementById('adminContent');
+  if(name==='overview')c.innerHTML=adminOverviewHtml();
+  else if(name==='charts'){c.innerHTML=chartsHtml();setTimeout(drawAllCharts,50);}
+  else if(name==='songs')c.innerHTML=adminSongsHtml();
+  else if(name==='users')c.innerHTML=adminUsersHtml();
+}
+function adminOverviewHtml(){
+  var ratings=getRatings();
+  var comments=getComments();
+  var users=getUsers();
+  var totalR=0,totalC=0,totalL=0,totalD=0,userCount=0;
+  for(var k in ratings){
+    totalR+=ratings[k].length;
+    for(var i=0;i<ratings[k].length;i++){
+      if(ratings[k][i].rating==='like')totalL++;else totalD++;
+    }
+  }
+  for(var ck in comments)totalC+=comments[ck].length;
+  for(var u in users)userCount++;
+  return '<div class="stat-cards">'+
+    '<div class="stat-card"><div class="sc-ico">🎵</div><div class="sc-num">'+SONGS.length+'</div><div class="sc-lbl">歌曲总数</div></div>'+
+    '<div class="stat-card"><div class="sc-ico">⭐</div><div class="sc-num">'+totalR+'</div><div class="sc-lbl">总评分数</div></div>'+
+    '<div class="stat-card"><div class="sc-ico">👍</div><div class="sc-num">'+totalL+'</div><div class="sc-lbl">好评数</div></div>'+
+    '<div class="stat-card"><div class="sc-ico">👎</div><div class="sc-num">'+totalD+'</div><div class="sc-lbl">差评数</div></div>'+
+    '<div class="stat-card"><div class="sc-ico">💬</div><div class="sc-num">'+totalC+'</div><div class="sc-lbl">总评论数</div></div>'+
+    '<div class="stat-card"><div class="sc-ico">👥</div><div class="sc-num">'+userCount+'</div><div class="sc-lbl">注册用户数</div></div>'+
+  '</div>'+
+  '<div class="chart-box"><h4>好评 / 差评 分布</h4><canvas id="ovPie" height="200"></canvas></div>';
+}
+function chartsHtml(){
+  return '<div class="chart-grid">'+
+    '<div class="chart-box"><h4>好评 / 差评 分布饼图</h4><canvas id="chPie" height="240"></canvas></div>'+
+    '<div class="chart-box"><h4>评分最多的 Top 10 歌曲</h4><canvas id="chTop" height="240"></canvas></div>'+
+    '<div class="chart-box"><h4>各音乐类型分布</h4><canvas id="chGenre" height="240"></canvas></div>'+
+    '<div class="chart-box"><h4>评分趋势模拟</h4><canvas id="chTrend" height="240"></canvas></div>'+
+  '</div>';
+}
+function adminSongsHtml(){
+  var ratings=getRatings();
+  var list=[];
+  for(var i=0;i<SONGS.length;i++){
+    var s=SONGS[i];
+    var st=songStats(s.id);
+    list.push({s:s,st:st});
+  }
+  list.sort(function(a,b){return b.st.wilson-a.st.wilson;});
+  var html='<div class="table-wrap"><table class="data-table"><thead><tr>'+
+    '<th>歌曲</th><th>艺术家</th><th>类型</th><th>好评</th><th>差评</th><th>评论</th><th>Wilson</th><th>好评率</th>'+
+  '</tr></thead><tbody>';
+  var comments=getComments();
+  for(var j=0;j<list.length;j++){
+    var item=list[j];
+    var pct=Math.round(item.st.wilson*100);
+    var ccount=(comments[item.s.id]||[]).length;
+    html+='<tr>'+
+      '<td>'+escapeHtml(item.s.title)+'</td>'+
+      '<td style="color:var(--text-dim)">'+escapeHtml(item.s.artist)+'</td>'+
+      '<td><span class="tag" style="font-size:.65rem">'+escapeHtml(item.s.genre)+'</span></td>'+
+      '<td style="color:var(--like)">'+item.st.likes+'</td>'+
+      '<td style="color:var(--dislike)">'+item.st.dislikes+'</td>'+
+      '<td>'+ccount+'</td>'+
+      '<td>'+item.st.wilson.toFixed(4)+'</td>'+
+      '<td><span class="mini-bar"><i style="width:'+pct+'%"></i></span> '+pct+'%</td>'+
+    '</tr>';
+  }
+  html+='</tbody></table></div>';
+  return html;
+}
+function adminUsersHtml(){
+  var users=getUsers();
+  var ratings=getRatings();
+  var comments=getComments();
+  var html='<div class="table-wrap"><table class="data-table"><thead><tr>'+
+    '<th>用户名</th><th>头像</th><th>手机号</th><th>评分数</th><th>评论数</th><th>注册时间</th>'+
+  '</tr></thead><tbody>';
+  for(var u in users){
+    var rc=0,cc=0;
+    for(var k in ratings){for(var i=0;i<ratings[k].length;i++){if(ratings[k][i].user===u)rc++;}}
+    for(var ck in comments){for(var j=0;j<comments[ck].length;j++){if(comments[ck][j].user===u)cc++;}}
+    var av=users[u].avatar&&users[u].avatar.indexOf('data:')===0
+      ?'<img src="'+users[u].avatar+'" style="width:24px;height:24px;border-radius:50%;object-fit:cover">'
+      :'<span style="font-size:1.1rem">'+(users[u].avatar||'🎵')+'</span>';
+    html+='<tr>'+
+      '<td style="font-weight:600">'+escapeHtml(u)+'</td>'+
+      '<td>'+av+'</td>'+
+      '<td>'+(users[u].phone?maskPhone(users[u].phone):'<span style="color:var(--text-dim)">未绑定</span>')+'</td>'+
+      '<td>'+rc+'</td>'+
+      '<td>'+cc+'</td>'+
+      '<td style="color:var(--text-dim);font-size:.75rem">'+formatDate(users[u].registered||0)+'</td>'+
+    '</tr>';
+  }
+  html+='</tbody></table></div>';
+  return html;
+}
+
+/* ===================== Canvas 图表 ===================== */
+function drawAllCharts(){
+  drawPieChart('chPie');
+  drawTop10Chart('chTop');
+  drawGenreChart('chGenre');
+  drawTrendChart('chTrend');
+  var ov=document.getElementById('ovPie');
+  if(ov)drawPieChart('ovPie');
+}
+function setupCanvas(id){
+  var cv=document.getElementById(id);
+  if(!cv)return null;
+  var dpr=window.devicePixelRatio||1;
+  var rect=cv.getBoundingClientRect();
+  cv.width=rect.width*dpr;
+  cv.height=(cv.getAttribute('height')||240)*dpr;
+  cv.style.height=(cv.getAttribute('height')||240)+'px';
+  var ctx=cv.getContext('2d');
+  ctx.scale(dpr,dpr);
+  return{ctx:ctx,w:rect.width,h:parseFloat(cv.getAttribute('height')||240)};
+}
+function drawPieChart(id){
+  var c=setupCanvas(id);if(!c)return;
+  var ctx=c.ctx,w=c.w,h=c.h;
+  var ratings=getRatings();
+  var likes=0,dislikes=0;
+  for(var k in ratings){for(var i=0;i<ratings[k].length;i++){if(ratings[k][i].rating==='like')likes++;else dislikes++;}}
+  var total=likes+dislikes;
+  ctx.clearRect(0,0,w,h);
+  var cx=w/2,cy=h/2,radius=Math.min(w,h)/2-30;
+  if(total===0){
+    ctx.fillStyle='rgba(255,255,255,.4)';
+    ctx.font='14px sans-serif';
+    ctx.textAlign='center';
+    ctx.fillText('暂无评分数据',cx,cy);
+    return;
+  }
+  var likePct=likes/total;
+  var disPct=dislikes/total;
+  // 好评扇形
+  ctx.beginPath();
+  ctx.moveTo(cx,cy);
+  ctx.arc(cx,cy,radius,-Math.PI/2,-Math.PI/2+likePct*Math.PI*2);
+  ctx.closePath();
+  var g1=ctx.createLinearGradient(cx-radius,cy-radius,cx+radius,cy+radius);
+  g1.addColorStop(0,'#66bb6a');
+  g1.addColorStop(1,'#2e7d32');
+  ctx.fillStyle=g1;
+  ctx.fill();
+  // 差评扇形
+  ctx.beginPath();
+  ctx.moveTo(cx,cy);
+  ctx.arc(cx,cy,radius,-Math.PI/2+likePct*Math.PI*2,-Math.PI/2+Math.PI*2);
+  ctx.closePath();
+  var g2=ctx.createLinearGradient(cx-radius,cy-radius,cx+radius,cy+radius);
+  g2.addColorStop(0,'#ef5350');
+  g2.addColorStop(1,'#c62828');
+  ctx.fillStyle=g2;
+  ctx.fill();
+  // 中心圆
+  ctx.beginPath();
+  ctx.arc(cx,cy,radius*0.5,0,Math.PI*2);
+  ctx.fillStyle='rgba(22,22,40,.92)';
+  ctx.fill();
+  ctx.fillStyle='#fff';
+  ctx.font='bold 18px sans-serif';
+  ctx.textAlign='center';
+  ctx.textBaseline='middle';
+  ctx.fillText(total,cx,cy-8);
+  ctx.font='11px sans-serif';
+  ctx.fillStyle='rgba(255,255,255,.6)';
+  ctx.fillText('总评分',cx,cy+10);
+  // 图例
+  drawLegend(ctx,w,h,[
+    {color:'#4caf50',label:'好评 '+likes+' ('+Math.round(likePct*100)+'%)'},
+    {color:'#f44336',label:'差评 '+dislikes+' ('+Math.round(disPct*100)+'%)'}
+  ]);
+}
+function drawLegend(ctx,w,h,items){
+  ctx.textAlign='left';
+  ctx.textBaseline='middle';
+  ctx.font='12px sans-serif';
+  var y=h-12-items.length*16;
+  for(var i=0;i<items.length;i++){
+    ctx.fillStyle=items[i].color;
+    ctx.fillRect(12,y+i*16,12,12);
+    ctx.fillStyle='rgba(255,255,255,.85)';
+    ctx.fillText(items[i].label,30,y+6+i*16);
+  }
+}
+function drawTop10Chart(id){
+  var c=setupCanvas(id);if(!c)return;
+  var ctx=c.ctx,w=c.w,h=c.h;
+  var ratings=getRatings();
+  var list=[];
+  for(var i=0;i<SONGS.length;i++){
+    var s=SONGS[i];
+    var st=songStats(s.id);
+    if(st.total>0)list.push({title:s.title,total:st.total,likes:st.likes});
+  }
+  list.sort(function(a,b){return b.total-a.total;});
+  list=list.slice(0,10);
+  ctx.clearRect(0,0,w,h);
+  if(list.length===0){
+    ctx.fillStyle='rgba(255,255,255,.4)';
+    ctx.font='14px sans-serif';
+    ctx.textAlign='center';
+    ctx.fillText('暂无评分数据',w/2,h/2);
+    return;
+  }
+  var maxV=list[0].total;
+  var padL=90,padR=20,padT=20,padB=40;
+  var chartW=w-padL-padR;
+  var chartH=h-padT-padB;
+  var barH=Math.min(24,chartH/list.length-4);
+  var gap=(chartH-barH*list.length)/(list.length+1);
+  ctx.textAlign='right';
+  ctx.textBaseline='middle';
+  ctx.font='11px sans-serif';
+  for(var j=0;j<list.length;j++){
+    var y=padT+gap*(j+1)+barH*j;
+    var val=list[j].total;
+    var bw=chartW*(val/maxV);
+    // 标签
+    var title=list[j].title;
+    if(title.length>10)title=title.slice(0,10)+'…';
+    ctx.fillStyle='rgba(255,255,255,.8)';
+    ctx.fillText(title,padL-8,y+barH/2);
+    // 条
+    var g=ctx.createLinearGradient(padL,y,padL+bw,y);
+    g.addColorStop(0,'#ffa726');
+    g.addColorStop(1,'#ff5722');
+    ctx.fillStyle=g;
+    roundRect(ctx,padL,y,bw,barH,4);
+    ctx.fill();
+    // 数值
+    ctx.fillStyle='#fff';
+    ctx.textAlign='left';
+    ctx.fillText(val,padL+bw+4,y+barH/2);
+  }
+  // 标题轴
+  ctx.textAlign='left';
+  ctx.fillStyle='rgba(255,167,38,.8)';
+  ctx.font='bold 11px sans-serif';
+  ctx.fillText('评分数',padL,h-12);
+}
+function drawGenreChart(id){
+  var c=setupCanvas(id);if(!c)return;
+  var ctx=c.ctx,w=c.w,h=c.h;
+  var map={};
+  for(var i=0;i<SONGS.length;i++){
+    map[SONGS[i].genre]=(map[SONGS[i].genre]||0)+1;
+  }
+  var list=[];
+  for(var g in map)list.push({genre:g,count:map[g]});
+  list.sort(function(a,b){return b.count-a.count;});
+  ctx.clearRect(0,0,w,h);
+  var maxV=list[0].count;
+  var padL=30,padR=30,padT=20,padB=50;
+  var chartW=w-padL-padR;
+  var chartH=h-padT-padB;
+  var barW=chartW/list.length;
+  ctx.textBaseline='bottom';
+  ctx.textAlign='center';
+  ctx.font='10px sans-serif';
+  for(var j=0;j<list.length;j++){
+    var x=padL+barW*j+barW/2;
+    var bh=chartH*(list[j].count/maxV);
+    var y=padT+chartH-bh;
+    var hue=(j*40)%360;
+    var g2=ctx.createLinearGradient(0,y,0,y+bh);
+    g2.addColorStop(0,'hsl('+hue+',70%,60%)');
+    g2.addColorStop(1,'hsl('+hue+',70%,40%)');
+    ctx.fillStyle=g2;
+    roundRect(ctx,x-barW*0.35,y,barW*0.7,bh,3);
+    ctx.fill();
+    // 数值
+    ctx.fillStyle='#fff';
+    ctx.font='bold 10px sans-serif';
+    ctx.fillText(list[j].count,x,y-3);
+    // 标签
+    ctx.fillStyle='rgba(255,255,255,.7)';
+    ctx.font='9px sans-serif';
+    var lab=list[j].genre;
+    if(lab.length>8)lab=lab.slice(0,8)+'…';
+    ctx.save();
+    ctx.translate(x,h-padB+8);
+    ctx.rotate(-Math.PI/6);
+    ctx.textAlign='right';
+    ctx.fillText(lab,0,0);
+    ctx.restore();
+  }
+  // X轴
+  ctx.strokeStyle='rgba(255,255,255,.15)';
+  ctx.beginPath();
+  ctx.moveTo(padL,padT+chartH);
+  ctx.lineTo(padL+chartW,padT+chartH);
+  ctx.stroke();
+}
+function drawTrendChart(id){
+  var c=setupCanvas(id);if(!c)return;
+  var ctx=c.ctx,w=c.w,h=c.h;
+  var ratings=getRatings();
+  // 按月聚合
+  var months={};
+  for(var k in ratings){
+    for(var i=0;i<ratings[k].length;i++){
+      var d=new Date(ratings[k][i].date);
+      var key=d.getFullYear()+'-'+(d.getMonth()+1<10?'0':'')+(d.getMonth()+1);
+      months[key]=(months[key]||0)+1;
+    }
+  }
+  var keys=Object.keys(months).sort();
+  ctx.clearRect(0,0,w,h);
+  var padL=40,padR=20,padT=20,padB=40;
+  var chartW=w-padL-padR;
+  var chartH=h-padT-padB;
+  // 网格
+  ctx.strokeStyle='rgba(255,255,255,.08)';
+  ctx.lineWidth=1;
+  for(var g=0;g<=4;g++){
+    var gy=padT+chartH*g/4;
+    ctx.beginPath();
+    ctx.moveTo(padL,gy);
+    ctx.lineTo(padL+chartW,gy);
+    ctx.stroke();
+  }
+  if(keys.length===0){
+    ctx.fillStyle='rgba(255,255,255,.4)';
+    ctx.font='14px sans-serif';
+    ctx.textAlign='center';
+    ctx.fillText('暂无评分趋势数据',w/2,h/2);
+    return;
+  }
+  var maxV=Math.max.apply(null,keys.map(function(k){return months[k];}));
+  if(maxV===0)maxV=1;
+  // 折线
+  var pts=[];
+  for(var i=0;i<keys.length;i++){
+    var x=padL+chartW*(keys.length===1?0.5:i/(keys.length-1));
+    var y=padT+chartH-months[keys[i]]/maxV*chartH;
+    pts.push({x:x,y:y,v:months[keys[i]],k:keys[i]});
+  }
+  // 填充区域
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x,padT+chartH);
+  for(var p=0;p<pts.length;p++){
+    if(p===0)ctx.lineTo(pts[p].x,pts[p].y);
+    else ctx.lineTo(pts[p].x,pts[p].y);
+  }
+  ctx.lineTo(pts[pts.length-1].x,padT+chartH);
+  ctx.closePath();
+  var fg=ctx.createLinearGradient(0,padT,0,padT+chartH);
+  fg.addColorStop(0,'rgba(255,167,38,.4)');
+  fg.addColorStop(1,'rgba(255,167,38,0)');
+  ctx.fillStyle=fg;
+  ctx.fill();
+  // 线
+  ctx.beginPath();
+  for(var q=0;q<pts.length;q++){
+    if(q===0)ctx.moveTo(pts[q].x,pts[q].y);
+    else ctx.lineTo(pts[q].x,pts[q].y);
+  }
+  ctx.strokeStyle='#ffa726';
+  ctx.lineWidth=2.5;
+  ctx.stroke();
+  // 点
+  for(var r=0;r<pts.length;r++){
+    ctx.beginPath();
+    ctx.arc(pts[r].x,pts[r].y,4,0,Math.PI*2);
+    ctx.fillStyle='#ff7043';
+    ctx.fill();
+    ctx.strokeStyle='#fff';
+    ctx.lineWidth=1.5;
+    ctx.stroke();
+    // 数值
+    ctx.fillStyle='#fff';
+    ctx.font='bold 10px sans-serif';
+    ctx.textAlign='center';
+    ctx.fillText(pts[r].v,pts[r].x,pts[r].y-8);
+    // x标签
+    ctx.fillStyle='rgba(255,255,255,.6)';
+    ctx.font='9px sans-serif';
+    ctx.fillText(pts[r].k.slice(2),pts[r].x,padT+chartH+14);
+  }
+}
+function roundRect(ctx,x,y,w,h,r){
+  if(w<2*r)r=w/2;
+  if(h<2*r)r=h/2;
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);
+  ctx.arcTo(x,y,x+w,y,r);
+  ctx.closePath();
+}
+
+/* ===================== 弹窗控制 ===================== */
+function openModal(id){
+  document.getElementById(id).classList.add('show');
+  document.body.style.overflow='hidden';
+}
+function closeModal(id){
+  document.getElementById(id).classList.remove('show');
+  document.body.style.overflow='';
+}
+function toast(msg,type){
+  var t=document.getElementById('toast');
+  t.textContent=msg;
+  t.className='toast show'+(type?' '+type:'');
+  clearTimeout(window._toastTimer);
+  window._toastTimer=setTimeout(function(){t.classList.remove('show');},2500);
+}
+
+/* ===================== 涟漪效果 ===================== */
+function addRipple(e){
+  var el=e.currentTarget;
+  var rect=el.getBoundingClientRect();
+  var ripple=document.createElement('span');
+  ripple.className='ripple';
+  var size=Math.max(rect.width,rect.height);
+  ripple.style.width=ripple.style.height=size+'px';
+  ripple.style.left=(e.clientX-rect.left-size/2)+'px';
+  ripple.style.top=(e.clientY-rect.top-size/2)+'px';
+  el.appendChild(ripple);
+  setTimeout(function(){ripple.remove();},600);
+}
+
+/* ===================== 初始化 ===================== */
+function init(){
+  renderHeader();
+  renderSongs();
+  document.getElementById('searchInput').addEventListener('input',renderSongs);
+  document.getElementById('sortSelect').addEventListener('change',renderSongs);
+  // 关闭按钮
+  var closes=document.querySelectorAll('[data-close]');
+  for(var i=0;i<closes.length;i++){
+    closes[i].onclick=function(){closeModal(this.getAttribute('data-close'));};
+  }
+  // 点击遮罩关闭
+  var overlays=document.querySelectorAll('.modal-overlay');
+  for(var j=0;j<overlays.length;j++){
+    overlays[j].onclick=function(e){
+      if(e.target===this)this.classList.remove('show'),document.body.style.overflow='';
+    };
+  }
+  // 鉴权切换
+  document.getElementById('authSwitch').onclick=function(e){
+    if(e.target.tagName==='A'){
+      openAuth(authMode==='login'?'register':'login');
+    }
+  };
+  document.getElementById('authSubmit').onclick=doAuth;
+  document.getElementById('authPass').addEventListener('keydown',function(e){if(e.key==='Enter')doAuth();});
+  document.getElementById('authUser').addEventListener('keydown',function(e){if(e.key==='Enter')doAuth();});
+  // ESC关闭
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape'){
+      document.querySelectorAll('.modal-overlay.show').forEach(function(m){
+        m.classList.remove('show');
+        document.body.style.overflow='';
+      });
+    }
+  });
+  // 涟漪效果
+  document.addEventListener('click',function(e){
+    var t=e.target.closest('.btn-primary,.rate-btn,.dropdown-item,.avatar-opt,.admin-tab');
+    if(t&&t.addRipple!==false){
+      var rect=t.getBoundingClientRect();
+      if(e.clientX>=rect.left&&e.clientX<=rect.right){
+        addRipple({currentTarget:t,clientX:e.clientX,clientY:e.clientY});
+      }
+    }
+  });
+}
+window.openAuth=openAuth;
+window.openSongDetail=openSongDetail;
+window.rateSong=rateSong;
+window.addComment=addComment;
+window.deleteComment=deleteComment;
+window.openSettings=openSettings;
+window.openAdmin=openAdmin;
+window.setAvatar=setAvatar;
+window.uploadAvatar=uploadAvatar;
+window.changeUsername=changeUsername;
+window.bindPhone=bindPhone;
+window.closeModal=closeModal;
+window.toast=toast;
+init();
+</script>
 </body>
 </html>
