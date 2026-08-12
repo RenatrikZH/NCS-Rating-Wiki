@@ -88,6 +88,7 @@ img{display:block;max-width:100%;-webkit-user-drag:none}
   grid-template-columns:var(--sidebar-w) 1fr;
   grid-template-rows:1fr var(--player-h);
   height:100vh;
+  height:100dvh; /* 动态视口高度，修复移动端地址栏导致的黑屏 */
   gap:0;
   padding:0;
 }
@@ -726,6 +727,7 @@ img{display:block;max-width:100%;-webkit-user-drag:none}
   border-radius:var(--r-xl);
   width:min(780px,100%);
   max-height:90vh;
+  max-height:90dvh;
   overflow:hidden;
   box-shadow:var(--shadow-lg);
   display:flex;flex-direction:column;
@@ -1100,38 +1102,219 @@ tr:hover td{background:rgba(255,255,255,0.02)}
 .toast b{color:var(--text);font-weight:800}
 
 /* ============ RESPONSIVE ============ */
-@media (max-width: 960px){
+/* 平板 (768-1024px) */
+@media (max-width: 1024px){
   :root{--sidebar-w:0px;--player-h:74px}
   .sidebar{display:none}
-  .app{padding:0}
-  .topbar{padding:0 14px}
-  .content{padding:4px 14px 30px}
-  .p-now{min-width:100px;gap:10px}
+  .app{padding:0;grid-template-columns:1fr}
+  .topbar{padding:0 16px}
+  .content{padding:4px 16px 30px}
+  .p-now{min-width:100px;gap:10px;width:25%}
   .p-now .cover{width:46px;height:46px}
   .p-extra{display:none}
   .p-ctrls{gap:4px}
   .charts{grid-template-columns:1fr}
-  .song-top .cover{width:140px;height:140px}
-  .song-info h2{font-size:22px}
-  .hero h1{font-size:22px}
+  .song-top .cover{width:160px;height:160px}
+  .song-info h2{font-size:24px}
+  .hero h1{font-size:24px}
   .hero-stats{width:100%}
   .stat{flex:1;min-width:0}
-  .grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:16px 14px}
+  .grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:16px 14px}
   .card{padding:10px}
   .vote-btns{margin-left:0;width:100%}
   .vote-btns .vote-btn{flex:1;justify-content:center}
+  .modal{width:min(680px,100%)}
 }
-@media (max-width: 560px){
-  .grid{grid-template-columns:repeat(2,1fr);gap:14px 10px}
+
+/* 大手机 / 小平板 (480-768px) */
+@media (max-width: 768px){
+  :root{--player-h:68px;--top-h:54px}
+  .topbar{padding:0 12px;gap:8px}
+  .content{padding:4px 12px 24px}
+  .hero{padding:18px 0 10px}
+  .hero h1{font-size:21px}
+  .hero p{font-size:12.5px}
+  .hero-stats{gap:8px}
+  .stat{padding:10px 12px;min-width:80px}
+  .stat b{font-size:17px}
+  .grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:14px 10px}
+  .song-top{gap:16px}
+  .song-top .cover{width:130px;height:130px}
+  .song-info h2{font-size:20px}
+  .song-info .art{font-size:13px}
+  .modal{width:100%;max-width:100%;max-height:100dvh;border-radius:0;border:none}
+  .modal-head{padding:14px 16px}
+  .modal-body{padding:16px 16px 20px}
+  .p-now{width:auto;min-width:0;flex:0 0 auto}
+  .p-now .meta{display:none}
+  .p-ctrls{max-width:none}
+  .p-prog span{min-width:32px;font-size:10px}
+  .p-btns{gap:10px}
+  .p-btns button{width:28px;height:28px}
+  .p-btns .play{width:32px;height:32px}
+  .toolbar{padding:12px 0 10px;gap:6px}
+  .chip{padding:6px 11px;font-size:11px}
+  .form{max-width:none;padding:0 8px}
+  .avatar-picker{grid-template-columns:repeat(8,1fr)}
+  .update-indicator{display:none}
+}
+
+/* 手机 (<480px) */
+@media (max-width: 480px){
+  :root{--player-h:64px;--top-h:50px}
+  .topbar{padding:0 10px;gap:6px}
+  .content{padding:2px 10px 20px}
+  .hero{padding:14px 0 8px}
+  .hero h1{font-size:19px;margin-bottom:5px}
+  .hero p{font-size:12px}
+  .hero-stats{gap:6px}
+  .stat{padding:8px 10px;min-width:70px}
+  .stat b{font-size:15px}
+  .stat span{font-size:9.5px}
+  .grid{grid-template-columns:repeat(2,1fr);gap:12px 8px}
+  .card{padding:8px}
+  .card .cover{aspect-ratio:1;margin-bottom:6px}
+  .card .t{font-size:12px}
+  .card .a{font-size:10.5px}
   .search{display:none}
   .topbar-right .btn-light span,.topbar-right .btn-ghost span{display:none}
   .topbar-right .btn-sm{padding:0 10px}
-  .p-ctrls .p-btns{gap:10px}
-  .p-now .meta{display:none}
+  .topbar-right .btn{padding:0 10px;height:30px}
+  .db-status{padding:3px 7px;font-size:10px}
+  .toolbar{gap:5px}
+  .chip{padding:5px 10px;font-size:10.5px}
+  .song-top{flex-direction:column;gap:14px;align-items:center;text-align:center}
+  .song-top .cover{width:160px;height:160px}
+  .song-info{align-items:center;text-align:center;width:100%}
+  .song-info .gtxt{margin:0 auto}
+  .song-info h2{font-size:19px}
+  .song-info .meta-row{justify-content:center}
+  .vote-btns{flex-direction:row}
+  .p-now .cover{width:42px;height:42px}
+  .p-btns{gap:8px}
+  .p-btns button{width:26px;height:26px;font-size:13px}
+  .p-btns .play{width:30px;height:30px;font-size:11px}
+  .p-prog{gap:6px}
+  .p-prog span{min-width:30px;font-size:9.5px}
+  .p-vol{display:none}
+  .modal-head h2{font-size:14px}
+  .modal-head{padding:12px 14px}
+  .modal-body{padding:14px}
+  .avatar-picker{grid-template-columns:repeat(6,1fr)}
+  .cmt-item{padding:10px 12px}
+  .cmt-avatar{width:28px;height:28px;font-size:11px}
+  .cmt-body{gap:3px}
+  .cmt-user{font-size:12px}
+  .cmt-text{font-size:12.5px;line-height:1.4}
+  .charts{gap:10px;margin-bottom:14px}
+  .nav-arrows{gap:4px}
+  .nav-arrow{width:28px;height:28px;font-size:13px}
+  .userchip{padding-right:8px;height:30px}
+  .userchip .username{max-width:60px;font-size:11px}
+  .avatar{width:22px;height:22px;font-size:10px}
+  .brand-name{font-size:14px}
+  .brand-name small{font-size:9px}
+  .brand{padding:14px 14px 12px}
+  .sidebar-footer{padding:10px 14px 12px;font-size:10px}
+}
+
+/* 触摸设备优化：增大触摸目标，去除 hover 闪烁 */
+@media (hover: none) and (pointer: coarse){
+  .card:hover{transform:none}
+  .nav-arrow:hover{opacity:1;background:rgba(255,255,255,0.09)}
+  .btn:hover{transform:none}
+  .btn-accent:hover{transform:none}
+  .btn-light:hover{transform:none}
+  .stat:hover{transform:none}
+  .pl-item:hover{background:rgba(255,255,255,0.04)}
+  .p-btns button:hover{background:transparent;color:var(--text-3)}
+  .modal-close:hover{transform:none;background:rgba(255,255,255,0.06)}
+  /* 增大触摸目标 */
+  .p-btns button{width:32px;height:32px}
+  .p-btns .play{width:36px;height:36px}
+  .modal-close{width:40px;height:40px}
+  .nav-arrow{width:36px;height:36px}
+  .chip{padding:8px 14px}
+  .btn{height:36px}
+  .btn-sm{height:32px}
+}
+
+/* 横屏手机优化 */
+@media (max-width: 900px) and (orientation: landscape){
+  :root{--player-h:60px}
+  .hero{padding:10px 0 6px}
+  .hero h1{font-size:18px}
+  .grid{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))}
+  .modal{max-height:95dvh}
+}
+
+/* 大屏桌面增强 */
+@media (min-width: 1600px){
+  :root{--sidebar-w:280px}
+  .content{padding:4px 36px 50px}
+  .topbar{padding:0 36px}
+  .hero h1{font-size:32px}
+}
+
+/* 减少动画（尊重用户设置 + 省电） */
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:0.01ms !important;animation-iteration-count:1 !important;transition-duration:0.01ms !important}
+  .brand-logo::after{display:none}
 }
 </style>
 </head>
 <body>
+
+<script>
+// ========== 设备检测 + 智能适配 ==========
+(function(){
+  const ua = navigator.userAgent;
+  const isMobile = /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua) || (navigator.maxTouchPoints > 1 && window.innerWidth < 768);
+  const isTablet = /iPad|Tablet|PlayBook|Silk/i.test(ua) || (navigator.maxTouchPoints > 1 && window.innerWidth >= 768 && window.innerWidth <= 1024);
+  const isDesktop = !isMobile && !isTablet;
+  const isIOS = /iPad|iPhone|iPod/.test(ua);
+  const isAndroid = /Android/i.test(ua);
+  const isSafari = /^((?!chrome|android).)*safari/i.test(ua);
+  const dpr = window.devicePixelRatio || 1;
+  const orient = window.innerWidth > window.innerHeight ? 'landscape' : 'portrait';
+
+  const cls = document.documentElement.className;
+  document.documentElement.className = (cls ? cls + ' ' : '') + [
+    isMobile ? 'is-mobile' : '',
+    isTablet ? 'is-tablet' : '',
+    isDesktop ? 'is-desktop' : '',
+    isIOS ? 'is-ios' : '',
+    isAndroid ? 'is-android' : '',
+    isSafari ? 'is-safari' : '',
+    'dpr-' + (dpr >= 3 ? '3x' : dpr >= 2 ? '2x' : '1x'),
+    'orient-' + orient
+  ].filter(Boolean).join(' ');
+
+  // 修复 iOS Safari 100vh 问题：动态设置 CSS 变量
+  function setVH(){
+    document.documentElement.style.setProperty('--vh', window.innerHeight * 0.01 + 'px');
+  }
+  setVH();
+  window.addEventListener('resize', setVH);
+  window.addEventListener('orientationchange', function(){ setTimeout(setVH, 200); });
+
+  // 阻止双击缩放（移动端更接近原生 App 体验）
+  let lastTouch = 0;
+  document.addEventListener('touchend', function(e){
+    const now = Date.now();
+    if(now - lastTouch < 300){ e.preventDefault(); }
+    lastTouch = now;
+  }, { passive: false });
+
+  // 控制台输出设备信息（方便调试）
+  console.log('%c[设备检测]', 'color:#22c55e;font-weight:bold',
+    isMobile ? '手机' : isTablet ? '平板' : '桌面',
+    '| 屏幕尺寸:', window.innerWidth + 'x' + window.innerHeight,
+    '| DPR:', dpr,
+    '| 方向:', orient,
+    '| 浏览器:', isIOS ? 'iOS Safari' : isAndroid ? 'Android' : 'Desktop');
+})();
+</script>
 
 <div class="app" id="appRoot">
   <!-- ============ SIDEBAR ============ -->
@@ -1344,13 +1527,10 @@ const LS={
 };
 
 // ========== DATABASE API SYNC ==========
-// 生产环境（Netlify）走 Cloudflare Tunnel（HK/SG 边缘节点，国内访问快）
-// 本地开发走 localhost:3000
-// 用户可在控制台 localStorage.setItem("ncs_api_base","...") 手动覆盖
-const API_BASE = localStorage.getItem("ncs_api_base") ||
-  ((location.hostname==="localhost"||location.hostname==="127.0.0.1")
-    ? "http://localhost:3000"
-    : "https://registered-treaty-protecting-orders.trycloudflare.com");
+// 同域部署（前后端同一个域名），因此 API_BASE 留空 → fetch 用相对路径 "/api/..."
+// 这样无论 Cloudflare Tunnel URL 怎么变，或本地/公网都正常工作
+// 用户仍可在控制台 localStorage.setItem("ncs_api_base","https://...") 手动覆盖
+const API_BASE = localStorage.getItem("ncs_api_base") || "";
 const API = {
   online: false,
   _fetch(path, opts, timeout){
