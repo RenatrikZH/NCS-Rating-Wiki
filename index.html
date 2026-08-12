@@ -1541,7 +1541,6 @@ const API = {
       .catch(()=>{clearTimeout(t); return null});
   },
   async health(){
-    if(!API_BASE) return false;
     const r = await this._fetch("/api/health", {}, 3000);
     this.online = !!r;
     this._updateIndicator();
@@ -1554,27 +1553,28 @@ const API = {
     else { el.className="db-status offline"; el.innerHTML='<span class="db-dot"></span> 本地模式'; }
   },
   async register(name, pass){
-    if(!API_BASE) return null;
-    return (await this._fetch("/api/register",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username:name,password:pass})}))?.json()||null;
+    const r = await this._fetch("/api/register",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username:name,password:pass})});
+    if(!r) return {error:"网络错误，无法连接服务器"};
+    return r.json();
+  },
+  async login(name, pass){
+    const r = await this._fetch("/api/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username:name,password:pass})});
+    if(!r) return {error:"网络错误，无法连接服务器"};
+    return r.json();
   },
   async rate(username, audioUrl, vote){
-    if(!API_BASE||!this.online) return;
     this._fetch("/api/rate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username,audioUrl,vote})});
   },
   async comment(username, audioUrl, vote, text){
-    if(!API_BASE||!this.online) return;
     this._fetch("/api/comment",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username,audioUrl,vote,text})});
   },
   async play(username, audioUrl){
-    if(!API_BASE||!this.online) return;
     this._fetch("/api/play",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username,audioUrl})});
   },
   async fetchAll(){
-    if(!API_BASE) return null;
     return (await this._fetch("/api/all"))?.json()||null;
   },
   async sync(ratings, comments, users){
-    if(!API_BASE||!this.online) return;
     // Convert local format → API format
     const rObj = {}, cObj = {}, uObj = {};
     for(const [url,r] of Object.entries(ratings)){ rObj[url] = {likes:r.likes, dislikes:r.dislikes, users:r.users}; }
@@ -2512,21 +2512,50 @@ const app = {
   // ========== AUTH ==========
   openModal(id){ $("#"+id).classList.add("open"); if(id==="loginModal") setTimeout(()=>$("#loginUser")&&$("#loginUser").focus(),120); },
   closeModal(id){ $("#"+id).classList.remove("open"); },
-  login(){
+  async login(){
     const u=$("#loginUser").value.trim(), p=$("#loginPass").value;
-    const res = Users.auth(u,p);
-    if(!res.ok){ showToast("❌ "+res.msg,2200); return; }
-    Session.set(res.user); this.refreshUser(); this.closeModal("loginModal"); $("#loginPass").value="";
-    showToast("👋 欢迎回来，"+esc(res.user.name)+"！", 2200); this.renderHome();
+    if(!u||!p){ showToast("❌ 请输入用户名和密码",2200); return; }
+    showToast("⏳ 正在验证...",1200);
+    // 先走服务器 API 验证
+    const apiRes = await API.login(u, p);
+    if(apiRes && apiRes.success){
+      // 服务器验证成功，同步到本地缓存
+      const user = {name: u, pass: p, phone:"", createdAt: Date.now(), avatar:AVATAR_SET[hashStr(u) % AVATAR_SET.length]};
+      // 如果服务器返回了注册时间，用它
+      if(apiRes.user && apiRes.user.joined) user.createdAt = new Date(apiRes.user.joined).getTime() || Date.now();
+      // 确保本地也有这个用户（降级用）
+      const all = Users.get();
+      if(!all[u.toLowerCase()]){ all[u.toLowerCase()] = user; Users.set(all); }
+      Session.set(user); this.refreshUser(); this.closeModal("loginModal"); $("#loginPass").value="";
+      showToast("👋 欢迎回来，"+esc(user.name)+"！", 2200); this.renderHome();
+    } else {
+      // 服务器验证失败
+      const msg = apiRes && apiRes.error ? apiRes.error : "用户名或密码错误";
+      showToast("❌ "+msg, 2500);
+    }
   },
-  register(){
+  async register(){
     const u=$("#regUser").value.trim(), p=$("#regPass").value, p2=$("#regPass2").value;
     if(p !== p2){ showToast("❌ 两次输入的密码不一致",2200); return; }
-    const res = Users.register(u,p);
-    if(!res.ok){ showToast("❌ "+res.msg,2200); return; }
-    Session.set(res.user); this.refreshUser(); this.closeModal("registerModal");
-    $("#regPass").value=""; $("#regPass2").value="";
-    showToast("🎉 注册成功，欢迎 "+esc(res.user.name)+"！", 2500); this.renderHome();
+    if(u.length < 2){ showToast("❌ 用户名至少2个字符",2200); return; }
+    if(p.length < 4){ showToast("❌ 密码至少4个字符",2200); return; }
+    showToast("⏳ 正在注册...",1200);
+    // 先走服务器 API 注册（服务端防重名）
+    const apiRes = await API.register(u, p);
+    if(apiRes && apiRes.success){
+      // 服务器注册成功，同步到本地缓存
+      const user = {name: u, pass: p, phone:"", createdAt: Date.now(), avatar:AVATAR_SET[hashStr(u) % AVATAR_SET.length]};
+      if(apiRes.user && apiRes.user.joined) user.createdAt = new Date(apiRes.user.joined).getTime() || Date.now();
+      const all = Users.get();
+      all[u.toLowerCase()] = user; Users.set(all);
+      Session.set(user); this.refreshUser(); this.closeModal("registerModal");
+      $("#regPass").value=""; $("#regPass2").value="";
+      showToast("🎉 注册成功，欢迎 "+esc(user.name)+"！", 2500); this.renderHome();
+    } else {
+      // 服务器注册失败（可能是重名）
+      const msg = apiRes && apiRes.error ? apiRes.error : "注册失败";
+      showToast("❌ "+msg, 2500);
+    }
   },
   logout(){
     Session.clear(); this.refreshUser();
