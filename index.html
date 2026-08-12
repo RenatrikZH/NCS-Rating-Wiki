@@ -1274,7 +1274,7 @@ tr:hover td{background:rgba(255,255,255,0.02)}
 </div>
 
 <!-- Audio element -->
-<audio id="audio" preload="metadata" crossorigin="anonymous"></audio>
+<audio id="audio" preload="metadata"></audio>
 
 <!-- Toast -->
 <div class="toast" id="toast"><span class="spin"></span><span id="toastText"></span></div>
@@ -1351,21 +1351,29 @@ const NCS_API = "https://ncs-backend-api.onrender.com/search?genre=all&_=";
 const AVATAR_SET=["🎵","🎧","🎹","🎸","🎺","🎷","🥁","🎤","🔥","⭐","🌈","💎","🌊","🍀","🌙","⚡"];
 
 const CATALOG_FALLBACK = [
-  {title:"Bones",artists:"Clarx",audioUrl:"https://ncs.io/track/download/7e9fcbc5-dbe8-482a-bb30-6c84e89278ff",coverUrl:"https://ncsmusic.s3.eu-west-1.amazonaws.com/tracks/000/000/594/325x325/bones-1586957711-Zx5G2UGRCk.jpg",genreNames:["Future House"]},
-  {title:"Puzzle",artists:"RetroVision",audioUrl:"https://ncs.io/track/download/a436ffa2-819a-4b70-b145-414c76e6ddf2",coverUrl:"https://ncsmusic.s3.eu-west-1.amazonaws.com/tracks/000/000/229/325x325/puzzle-1586947701-5zsJbtBjsF.jpg",genreNames:["House"]},
-  {title:"midnight feelings",artists:"yanvince",audioUrl:"https://ncs.io/track/download/96f4d7bd-30ae-48a4-adb8-2a96b53ea0a5",coverUrl:"https://ncsmusic.s3.eu-west-1.amazonaws.com/tracks/000/001/610/325x325/midnight-feelings-1705539664-UvVZP5sRPR.jpg",genreNames:["Chill Pop"]},
-  {title:"EYES ON US",artists:"2frers",audioUrl:"https://ncs.io/track/download/06a9fda8-7d68-4ef9-8ba9-a1ff07a16469",coverUrl:"https://ncsmusic.s3.eu-west-1.amazonaws.com/tracks/000/002/109/325x325/eyes-on-us-1780617671-p9CjylKXfs.png",genreNames:["Electro"]},
+  {title:"This Feeling",artists:"Reece Rosé, STREETSINEZ",audioUrl:"https://ncsmusic.s3.eu-west-1.amazonaws.com/tracks/000/002/150/this-feeling-1786406474-GF8xMIoxTG.mp3",coverUrl:"https://ncsmusic.s3.eu-west-1.amazonaws.com/tracks/000/002/150/325x325/this-feeling-1786406471-jBWdiE4r8R.png",genreNames:["House"]},
+  {title:"in motion",artists:"L3VI",audioUrl:"https://ncsmusic.s3.eu-west-1.amazonaws.com/tracks/000/002/148/in-motion-1786060874-dS5nDYrEa2.mp3",coverUrl:"https://ncsmusic.s3.eu-west-1.amazonaws.com/tracks/000/002/148/325x325/in-motion-1786060871-XlJ1d3Zgfv.png",genreNames:["UK House"]},
+  {title:"One Day",artists:"gabriawll",audioUrl:"https://ncsmusic.s3.eu-west-1.amazonaws.com/tracks/000/002/147/1786011316_M1BScgZTYp_One-Day-NCS-Release.mp3",coverUrl:"https://ncsmusic.s3.eu-west-1.amazonaws.com/tracks/000/002/147/325x325/1786011321_TuxHJdHx5l_One-Day-NCS-Release.png",genreNames:["Electro House"]},
+  {title:"Groovy Chick",artists:"BEANIE, Lauren Nicole, Gray Hoek",audioUrl:"https://ncsmusic.s3.eu-west-1.amazonaws.com/tracks/000/002/142/groovy-chick-1785456084-hR3ZQQAoUi.mp3",coverUrl:"https://ncsmusic.s3.eu-west-1.amazonaws.com/tracks/000/002/142/325x325/groovy-chick-1785456081-hxVpCx8V9r.png",genreNames:["Future Bass"]},
   {title:"Recall",artists:"gabriawll",audioUrl:"https://ncs.io/track/download/e5595204-a2e0-4a3b-b7b7-a1bcb47952d6",coverUrl:"https://ncsmusic.s3.eu-west-1.amazonaws.com/tracks/000/001/998/325x325/recall-1762218065-a3SICDBo0n.png",genreNames:["Dance-Pop"]},
   {title:"KYOTO",artists:"Hester",audioUrl:"https://ncs.io/track/download/2f4a3a98-c425-422b-81b1-01e1027d3007",coverUrl:"https://ncsmusic.s3.eu-west-1.amazonaws.com/tracks/000/002/116/325x325/kyoto-1781827266-hNgYgJ7gPq.png",genreNames:["Progressive House"]}
 ];
 
 class Catalog {
   constructor(){this.items = LS.get(SCT, null); this.lastUpdate = LS.get(SLU, 0); this.meta = LS.get("ncs_meta_v3", null);}
+  // Invalidate cache if audioUrls are not S3 direct links (old format ncs.io/track/download/ cannot play in <audio>)
+  _needsRefresh(){
+    if(!this.items || this.items.length === 0) return true;
+    // Sample from beginning, middle, end to catch mixed caches
+    const n = this.items.length;
+    const sample = [this.items[0], this.items[Math.floor(n/2)], this.items[n-1]].filter(Boolean);
+    return sample.some(s => !s.audioUrl || !s.audioUrl.startsWith("https://ncsmusic.s3"));
+  }
   async init(onProgress){
-    // 1) Try catalog.json in same folder
-    if(!this.items || this.items.length < 10){
+    // 1) Try catalog.json in same folder (always refresh if cache is stale/bad format)
+    if(this._needsRefresh()){
       try{
-        const r = await fetch("catalog.json",{cache:"no-cache",headers:{"Accept":"application/json"}});
+        const r = await fetch("catalog.json?v=" + (this.meta && this.meta.scrapedAt ? Date.parse(this.meta.scrapedAt) : Date.now()),{cache:"no-cache",headers:{"Accept":"application/json"}});
         if(r.ok){
           const data = await r.json();
           if(data && Array.isArray(data.tracks) && data.tracks.length > 0){
@@ -1376,24 +1384,16 @@ class Catalog {
           }
         }
       }catch(e){}
-      // Try catalog_b.json too
-      try{
-        const r2 = await fetch("catalog_b.json",{cache:"no-cache"});
-        if(r2.ok){
-          const d2 = await r2.json();
-          if(Array.isArray(d2.tracks)){
-            if(!this.items || this.items.length < d2.tracks.length){ this.items = d2.tracks; this.meta = d2.meta||null; this.save(); }
-          }
-        }
-      }catch(e){}
     }
-    // 2) Fallback
+    // 2) Fallback (only if still empty — these URLs may not play, but better than blank)
     if(!this.items || this.items.length === 0){
       this.items = CATALOG_FALLBACK.slice();
       this.lastUpdate = Date.now();
     }
-    // 3) Background song discovery (lightweight, best-effort)
-    setTimeout(()=> this.backgroundFill(3, onProgress), 3000);
+    // 3) Background sync: try fetch catalog.json again if we fell back (no random API — those URLs don't play)
+    if(this.items.length <= CATALOG_FALLBACK.length){
+      setTimeout(()=> this.init(onProgress), 5000);
+    }
     return this.items;
   }
   save(){LS.set(SCT, this.items); LS.set(SLU, this.lastUpdate); if(this.meta) LS.set("ncs_meta_v3", this.meta);}
@@ -1543,7 +1543,20 @@ const Player = {
   audio: null, queue: [], idx: -1, vol: 0.7, muted: false, loop: false, shuffle: false,
   init(){
     this.audio = $("#audio");
-    try{ const saved = LS.get(SPL, null); if(saved){ this.vol = saved.vol ?? 0.7; this.idx = saved.idx ?? -1; this.queue = saved.queue||[]; }}catch(e){}
+    try{
+      const saved = LS.get(SPL, null);
+      if(saved){
+        this.vol = saved.vol ?? 0.7;
+        // Discard saved queue if it contains old-format URLs (ncs.io/track/download/) that can't play
+        const q = saved.queue || [];
+        const hasBadUrls = q.length > 0 && q.slice(0, 3).some(s => !s.audioUrl || !s.audioUrl.startsWith("https://ncsmusic.s3"));
+        if(hasBadUrls){
+          this.queue = []; this.idx = -1;
+        } else {
+          this.queue = q; this.idx = saved.idx ?? -1;
+        }
+      }
+    }catch(e){}
     this.audio.volume = this.vol;
     this.bind();
     this.render();
