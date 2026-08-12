@@ -643,15 +643,53 @@ img{display:block;max-width:100%;-webkit-user-drag:none}
 }
 .bar:hover .bar-fill{background:var(--accent)}
 .bar-handle{
-  width:12px;height:12px;
+  width:14px;height:14px;
   border-radius:50%;
   background:#fff;
+  border:2px solid var(--accent);
   position:absolute;top:50%;
-  transform:translate(-50%,-50%) scale(0);
-  transition:transform .18s var(--ease);
+  transform:translate(-50%,-50%) scale(var(--handle-scale,0));
+  transition:transform .18s var(--ease), background .18s;
   box-shadow:0 2px 6px rgba(0,0,0,0.5);
+  touch-action:none;
 }
-.bar:hover .bar-handle{transform:translate(-50%,-50%) scale(1)}
+.bar:hover .bar-handle,
+.bar.has-handle .bar-handle{
+  --handle-scale: 1;
+}
+.bar:hover .bar-handle,
+.bar.has-handle:hover .bar-handle,
+.bar.has-handle:active .bar-handle{
+  background:var(--accent);
+  --handle-scale: 1.1;
+}
+.bar-lg{height:8px}
+.bar-lg:hover{height:10px}
+.t-num{
+  font-size:12px;font-weight:600;color:var(--text-4);
+  font-variant-numeric:tabular-nums;
+  min-width:42px;text-align:center;
+}
+
+/* Song-detail timeline */
+.prog-detail{
+  margin:16px 0 8px;
+  display:flex;flex-direction:column;gap:10px;
+  padding:14px 16px;
+  border-radius:14px;
+  background:linear-gradient(145deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+  border:1px solid rgba(255,255,255,0.06);
+}
+.prog-detail-ctrls{display:flex;align-items:center;gap:14px}
+.prog-detail-hint{
+  font-size:12px;color:var(--text-4);font-weight:500;
+  background:rgba(34,197,94,0.08);
+  color:#86efac;
+  padding:6px 10px;border-radius:999px;
+  display:inline-block;
+  border:1px solid rgba(34,197,94,0.18);
+}
+.prog-detail-row{display:flex;align-items:center;gap:12px;width:100%}
 
 .p-extra{display:flex;align-items:center;gap:14px;width:30%;justify-content:flex-end;color:var(--text-3)}
 .p-extra .vol{display:flex;align-items:center;gap:8px;width:120px}
@@ -1561,13 +1599,74 @@ const Player = {
     this.bind();
     this.render();
   },
+  // Refresh play icons on both bottom bar (#pPlay) and song-detail modal (#detailPlay)
+  // (detailPlay only shows ⏸ if its song is the ACTIVE playing one)
+  syncPlayBtns(){
+    const playing = !this.audio.paused;
+    const icon = playing ? "⏸" : "▶";
+    if($("#pPlay")) $("#pPlay").innerHTML = icon;
+    const dp = $("#detailPlay");
+    if(dp){
+      const cur = this.queue[this.idx];
+      // Determine the song currently shown in the modal from data attribute (set in openSong)
+      const shownUrl = document.body.dataset.detailSongAudioUrl || "";
+      if(cur && cur.audioUrl === shownUrl) dp.innerHTML = icon;
+      else dp.innerHTML = "▶";
+    }
+  },
+  // Attach click + drag to a progress bar (barEl -> seek audio) or volume bar (barEl -> set volume)
+  attachBar(barEl, onSeek, handleClass){
+    if(!barEl) return;
+    const seekFromEvent = (e) => {
+      const r = barEl.getBoundingClientRect();
+      const x = (e.touches && e.touches.length) ? e.touches[0].clientX : e.clientX;
+      return Math.max(0, Math.min(1, (x - r.left) / r.width));
+    };
+    let dragging = false;
+    let hover = false;
+    const showHandle = (on) => {
+      if(handleClass) {
+        if(on) barEl.classList.add(handleClass);
+        else if(!hover && !dragging) barEl.classList.remove(handleClass);
+      } else {
+        barEl.style.setProperty("--handle-scale", on || hover || dragging ? "1" : "0");
+      }
+    };
+    barEl.addEventListener("mousedown", e => {
+      dragging = true;
+      onSeek(seekFromEvent(e), true);
+      showHandle(true);
+      e.preventDefault();
+    });
+    barEl.addEventListener("touchstart", e => {
+      dragging = true;
+      onSeek(seekFromEvent(e), true);
+      showHandle(true);
+    }, {passive:true});
+    window.addEventListener("mousemove", e => {
+      if(dragging){ onSeek(seekFromEvent(e), true); }
+    });
+    window.addEventListener("touchmove", e => {
+      if(dragging){ onSeek(seekFromEvent(e), true); }
+    }, {passive:true});
+    const endDrag = () => { if(dragging){ dragging=false; showHandle(false); } };
+    window.addEventListener("mouseup", endDrag);
+    window.addEventListener("touchend", endDrag);
+    window.addEventListener("touchcancel", endDrag);
+    barEl.addEventListener("click", e => {
+      if(dragging) return; // suppress click at end of drag
+      onSeek(seekFromEvent(e), false);
+    });
+    barEl.addEventListener("mouseenter", () => { hover=true; showHandle(true); });
+    barEl.addEventListener("mouseleave", () => { hover=false; showHandle(false); });
+  },
   bind(){
     const a=this.audio;
-    a.addEventListener("timeupdate", ()=> this.renderProg());
+    a.addEventListener("timeupdate", ()=> { if(!this._progDragging) this.renderProg(); });
     a.addEventListener("loadedmetadata", ()=> this.renderProg());
-    a.addEventListener("play", ()=> $("#pPlay").innerHTML = "⏸");
-    a.addEventListener("pause", ()=> $("#pPlay").innerHTML = "▶");
-    a.addEventListener("ended", ()=> this.loop ? a.play() : this.next());
+    a.addEventListener("play", ()=> this.syncPlayBtns());
+    a.addEventListener("pause", ()=> this.syncPlayBtns());
+    a.addEventListener("ended", ()=> { this.syncPlayBtns(); this.loop ? a.play() : this.next(); });
     a.addEventListener("error", ()=> console.warn("Audio load error"));
     $("#pPlay").onclick = ()=> this.togglePlay();
     $("#pNext").onclick = ()=> this.next();
@@ -1575,14 +1674,17 @@ const Player = {
     $("#pLoop").onclick = ()=> {this.loop=!this.loop; $("#pLoop").style.color=this.loop?"var(--accent)":""};
     $("#pShuffle").onclick = ()=> {this.shuffle=!this.shuffle; $("#pShuffle").style.color=this.shuffle?"var(--accent)":""};
     $("#pMute").onclick = ()=> {this.muted=!this.muted; a.muted=this.muted; $("#pMute").innerHTML = this.muted||this.vol===0 ? "🔇" : "🔊"};
-    const pBar=$("#pProgBar"); pBar.addEventListener("click", e=>{
-      const r=pBar.getBoundingClientRect(); const p=(e.clientX-r.left)/r.width;
-      if(isFinite(a.duration)) a.currentTime = a.duration * Math.max(0, Math.min(1,p));
-    });
-    const vBar=$("#pVolBar"); vBar.addEventListener("click", e=>{
-      const r=vBar.getBoundingClientRect(); const v=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width));
-      this.setVol(v);
-    });
+    // Bottom progress bar: click + drag to seek
+    this.attachBar($("#pProgBar"), (p, fromDrag) => {
+      if(isFinite(a.duration) && a.duration > 0){
+        if(fromDrag) this._progDragging = true;
+        a.currentTime = a.duration * p;
+        this._progDragging = false;
+      }
+    }, "has-handle");
+    // Volume bar: click + drag to adjust volume
+    this.attachBar($("#pVolBar"), (p) => { this.setVol(p); }, "has-handle");
+    this.syncPlayBtns();
   },
   setVol(v){ this.vol = v; this.audio.volume=v; this.muted=(v===0); $("#pMute").innerHTML = this.muted?"🔇":"🔊";
     $("#pVolFill").style.width=(v*100)+"%"; $("#pVolHandle").style.left=(v*100)+"%";
@@ -1923,6 +2025,12 @@ const app = {
     const dislikePct = 100 - likePct;
     const coverFallback = `this.onerror=null;this.parentNode.style.background='${coverGradientFor(s.title)}';this.removeAttribute('src');this.style.display='none'`;
     const coverStyle = s.coverUrl ? "" : `style="background:${coverGradientFor(s.title)}"`;
+    // current display state for this song (for progress / play button shown in the modal)
+    const showCur = Player.queue[Player.idx] && Player.queue[Player.idx].audioUrl === s.audioUrl;
+    const curDur = showCur && isFinite(Player.audio.duration) ? Player.audio.duration : 0;
+    const curCur = showCur ? (Player.audio.currentTime || 0) : 0;
+    const curPct = curDur > 0 ? (curCur / curDur * 100) : 0;
+    document.body.dataset.detailSongAudioUrl = s.audioUrl || "";
     const body = $("#songModalBody");
     body.innerHTML = `
       <div class="song-top">
@@ -1937,9 +2045,29 @@ const app = {
             <span>👎 ${r.dislikes} 差评</span>
             <span>💬 ${cs.length} 条评论</span>
           </div>
+          ${s.audioUrl ? `
+            <!-- Full scrubbable timeline: drag the circle handle anywhere you want (e.g. 50% -> drop) -->
+            <div class="prog-detail" id="dProgWrap">
+              <div class="prog-detail-ctrls">
+                <button class="round-play" id="detailPlay" title="播放/暂停" style="width:46px;height:46px;font-size:18px;flex:0 0 46px">
+                  ${showCur && !Player.audio.paused ? "⏸" : "▶"}
+                </button>
+                <div class="prog-detail-text">
+                  <div class="prog-detail-hint">拖动滑块到任意位置（如 50% = 歌曲高潮）</div>
+                </div>
+              </div>
+              <div class="prog-detail-row">
+                <span id="dCur" class="t-num">${fmtTime(curCur)}</span>
+                <div class="bar bar-lg has-handle" id="dProgBar">
+                  <div class="bar-fill" id="dProgFill" style="width:${curPct}%"></div>
+                  <div class="bar-handle" id="dProgHandle" style="left:${curPct}%"></div>
+                </div>
+                <span id="dDur" class="t-num">${fmtTime(curDur)}</span>
+              </div>
+            </div>` : ''}
           <div class="song-actions">
-            <button class="round-play" id="detailPlay" title="播放/暂停">${Player.queue[Player.idx] && Player.queue[Player.idx].audioUrl===s.audioUrl && !Player.audio.paused ? "⏸":"▶"}</button>
-            <button class="ghost-btn" onclick="window.open('${esc(s.audioUrl)}','_blank')">⬇️ 下载音频 (MP3)</button>
+            ${s.audioUrl ? '' : `<button class="round-play" id="detailPlay" disabled title="暂无音频" style="opacity:.4">▶</button>`}
+            ${s.audioUrl ? `<button class="ghost-btn" onclick="window.open('${esc(s.audioUrl)}','_blank')">⬇️ 下载音频 (MP3)</button>` : ''}
             <div class="vote-btns">
               <button class="vote-btn like ${my===1?'on':''}" data-v="1">👍 好评</button>
               <button class="vote-btn dislike ${my===-1?'on':''}" data-v="-1">👎 差评</button>
@@ -1972,7 +2100,77 @@ const app = {
         if(res.changed){ this.openSong(s); this.renderHome(); Player.setQueue(Player.queue, Player.idx); }
       };
     });
-    $("#detailPlay").onclick = ()=> Player.play(s, this.catalog.all());
+    if($("#detailPlay")){
+      $("#detailPlay").onclick = ()=> {
+        const cur = Player.queue[Player.idx];
+        if(!cur || cur.audioUrl !== s.audioUrl){
+          // First click on a new song -> start playback (with catalog as queue)
+          Player.play(s, this.catalog.all());
+        } else {
+          // Same song -> toggle play/pause (so icon swaps between ▶ and ⏸)
+          Player.togglePlay();
+        }
+      };
+    }
+    // Attach drag + click seek to detail timeline (if present)
+    const dBar = $("#dProgBar");
+    if(dBar && s.audioUrl){
+      // Ensure the Player is pointed at this song so seeks apply correctly
+      const cur = Player.queue[Player.idx];
+      if(!cur || cur.audioUrl !== s.audioUrl){
+        const idxInQ = Player.queue.findIndex(x=> x.audioUrl === s.audioUrl);
+        if(idxInQ >= 0) Player.idx = idxInQ;
+        else { Player.queue = this.catalog.all(); Player.idx = Player.queue.findIndex(x=> x.audioUrl === s.audioUrl); if(Player.idx<0) Player.idx=0; }
+      }
+      // Preload src so we have a duration for the slider even before user clicks play
+      try{ if(Player.audio.src !== s.audioUrl){ Player.audio.src = s.audioUrl; Player.audio.load(); } }catch(e){}
+      const renderDetailProg = ()=> {
+        const a = Player.audio;
+        const cur = a.currentTime || 0;
+        const dur = isFinite(a.duration) ? a.duration : 0;
+        const pct = dur>0 ? (cur/dur*100) : 0;
+        if($("#dCur")) $("#dCur").textContent = fmtTime(cur);
+        if($("#dDur")) $("#dDur").textContent = fmtTime(dur);
+        if($("#dProgFill")) $("#dProgFill").style.width = pct + "%";
+        if($("#dProgHandle")) $("#dProgHandle").style.left = pct + "%";
+      };
+      renderDetailProg();
+      // Keep detail progress live while modal open
+      const origRenderProg = Player.renderProg.bind(Player);
+      Player.renderProg = function(){
+        origRenderProg();
+        renderDetailProg();
+      };
+      // When modal closes, restore original renderProg and unset marker
+      const closeBtn = document.querySelector('[data-close="songModal"]');
+      const restore = ()=> { Player.renderProg = origRenderProg; };
+      if(closeBtn){ const orig=closeBtn.onclick; closeBtn.onclick = ()=>{ restore(); if(orig) orig.call(closeBtn); }; }
+      const overlay = $("#songModal");
+      if(overlay){ const orig=overlay.onclick; overlay.onclick=(ev)=>{ if(ev.target===overlay){ restore(); if(orig) orig.call(overlay, ev); } }; }
+
+      Player.attachBar(dBar, (p, fromDrag) => {
+        const a = Player.audio;
+        // If audio hasn't started, ensure it's loaded so seeking works
+        if(a.src !== s.audioUrl){ try{ a.src = s.audioUrl; a.load(); }catch(e){} }
+        const dur = isFinite(a.duration) && a.duration > 0 ? a.duration : 0;
+        if(dur > 0){
+          a.currentTime = dur * p;
+          renderDetailProg();
+        } else {
+          // Not yet loaded -> remember target and apply when ready
+          const applyWhenReady = ()=> {
+            const readyDur = isFinite(a.duration) && a.duration > 0 ? a.duration : 0;
+            if(readyDur > 0){
+              a.currentTime = readyDur * p;
+              a.removeEventListener("loadedmetadata", applyWhenReady);
+              renderDetailProg();
+            }
+          };
+          a.addEventListener("loadedmetadata", applyWhenReady);
+        }
+      }, "has-handle");
+    }
+    Player.syncPlayBtns();
     const f = $("#commentForm"); if(f) f.onsubmit = (ev)=>{
       ev.preventDefault();
       if(!u){ showToast("🔐 请先登录再评论",2200); this.openModal("loginModal"); return; }
